@@ -5,44 +5,55 @@
 
 using namespace std;
 
+int database_open(string filename, sqlite3 **db);
 int64_t spreadsheet_enter(sqlite3 *db, string spreadsheet, string cell, string contents);
 
 int main (int argc, const char* argv[]) {
 
   sqlite3 *db;
   
-  int error = sqlite3_open("test.db", &db);
+  database_open("spreadsheets.sqlite", &db);
+  cout << spreadsheet_enter(db, "Test", "A1", "Hello World") << endl;
 
-  // Turn on extended error codes
-  sqlite3_extended_result_codes(db, 1);
-
-  if(error) {
-    cout << "Can't open database: " << sqlite3_errmsg(db) << endl;
-    return 0;
-  } else {
-    cout << "Opened database successfully" << endl;
-    int r = spreadsheet_enter(db, "test", "A1", "Hello");
-    cout << "Added row " << r << endl;
-  }
-  
   sqlite3_close(db);
 
 }
 
+int database_open(string filename, sqlite3 **db) {
+
+  // Open the database file
+  int error = sqlite3_open(filename.c_str(), db);
+  // Turn on extended error codes (for debugging)
+  sqlite3_extended_result_codes(*db, 1);
+  if(error != SQLITE_OK) {
+    cout << "Error: couldn't open " << filename << ". SQLite error: " << sqlite3_errmsg(*db) << endl;
+    return -1;
+  } 
+ 
+  // Create transactions table
+  error = sqlite3_exec(*db, 
+		       "CREATE TABLE IF NOT EXISTS transactions (spreadsheet TEXT, cell TEXT, contents TEXT);"
+                       "CREATE INDEX IF NOT EXISTS index_spreadsheet ON transactions (spreadsheet);"
+		       "CREATE INDEX IF NOT EXISTS index_cell ON transactions (cell);",
+		       NULL, NULL, NULL);
+  if(error != SQLITE_OK) {
+    cout << "Error: couldn't create transactions table. SQLite error: " << error << endl;
+    return -1;
+  }
+
+  // Table created
+  return 0;
+}
+
 int64_t spreadsheet_enter(sqlite3 *db, string spreadsheet, string cell, string contents) {
-  if(!db) return 0;
+  if(!db) return -1;
 
-  char *error = 0;
   sqlite3_stmt *statement;
-  const char *leftover;  // Used to point to the next statement if there is one
-  char *sql;
-  int rc;
   
-  sql = (char *)"INSERT INTO transactions (spreadsheet, cell, contents) VALUES (?,?,?)";
+  string sql = "INSERT INTO transactions (spreadsheet, cell, contents) VALUES (?,?,?)";
+  int result = sqlite3_prepare_v2(db, sql.c_str(), strlen(sql.c_str()), &statement, NULL);
 
-  rc = sqlite3_prepare(db, sql, strlen(sql), &statement, &leftover);
-
-  if( rc == SQLITE_OK ) {
+  if( result == SQLITE_OK ) {
     // Bind values
     sqlite3_bind_text(statement, 1, spreadsheet.c_str(), strlen(spreadsheet.c_str()), 0);
     sqlite3_bind_text(statement, 2, cell.c_str(), strlen(cell.c_str()), 0);
@@ -52,11 +63,12 @@ int64_t spreadsheet_enter(sqlite3 *db, string spreadsheet, string cell, string c
     sqlite3_step(statement);
     sqlite3_finalize(statement);
 
-    // Return new rowid
+    // Return new rowid (useful as a verison number)
     return sqlite3_last_insert_rowid(db);
   } else {
-    cout << "There was an error preparing the statement: " << rc << endl;
+    cout << "There was an error preparing the statement: " << rc << " " << sqlite3_errmsg(db) << endl;
     return 0;
   } 
     
 }
+
