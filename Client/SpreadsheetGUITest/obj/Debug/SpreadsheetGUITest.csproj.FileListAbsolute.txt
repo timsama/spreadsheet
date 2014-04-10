@@ -1,0 +1,5 @@
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUITest\bin\Debug\SpreadsheetGUITest.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUITest\bin\Debug\SpreadsheetGUITest.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUITest\obj\Debug\SpreadsheetGUITest.csprojResolveAssemblyReference.cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUITest\obj\Debug\SpreadsheetGUITest.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUITest\obj\Debug\SpreadsheetGUITest.pdb
