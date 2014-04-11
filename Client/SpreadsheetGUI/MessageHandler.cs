@@ -21,6 +21,7 @@ namespace SS
     }
 
     // represents the a sender/receiver for messages to/from the server
+
     public class MessageHandler
     {
         // register for this event to be notified when a file has been successfully opened. String contains the XML of the opened file

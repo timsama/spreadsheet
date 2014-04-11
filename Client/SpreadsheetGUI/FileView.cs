@@ -128,6 +128,7 @@ namespace SS
         }
 
         // to be registered with an event for when an update has been received, string name should contain the cell name, and string contents should contain the cell contents
+
         private void Update(SyncCell cell)
         {
             // unregister so later file openings don't trigger this
