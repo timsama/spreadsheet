@@ -1,2 +1,2 @@
-default:	dg.cc dg.h test.cc
-	clear; g++ dg.cc dg.h test.cc
+default:	dependency_graph.cc dependency_graph.h test.cc
+	clear; g++ dependency_graph.cc dependency_graph.h test.cc

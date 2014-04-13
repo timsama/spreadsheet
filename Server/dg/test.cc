@@ -1,4 +1,4 @@
-#include "dg.h"
+#include "dependency_graph.h"
 
 #include <iostream>
 
