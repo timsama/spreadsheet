@@ -20,6 +20,10 @@ namespace SS
         private Spreadsheet spreadsheetModel;
         private Dictionary<String, GUILanguage> LangSet;
         private FileView FileViewHandle;
+        private MessageHandler msgHand;
+        private String filename;
+        private String version;
+        private bool locked;
 
         private GUILanguage guiLang;
 
@@ -27,31 +31,35 @@ namespace SS
         /// Initialize the form and open a file
         /// </summary>
         /// <param name="filename"></param>
-        public MainForm(string filename, FileView _fileview)
-            : this(filename)
+        public MainForm(string _filename, string _version, FileView _fileview)
+            : this(_filename)
         {
+            // set this spreadsheet's version
+            version = _version;
+
             // set a handle to this form's parent FileView
             FileViewHandle = _fileview;
+
+            // set a handle to a new MessageHandler (each spreadsheet operates on its own socket)
+            msgHand = new MessageHandler(_fileview.getMessageHandler());
+
+            // set up events to respond to the MessageHandler
+            msgHand.Saved += handleSaved;
+            msgHand.Updated += handleUpdate;
+            msgHand.Sync += handleSync;
+            msgHand.ErrorMessage += handleErrorMessage;
         }
 
         /// <summary>
         /// Initialize the form and open a file
         /// </summary>
         /// <param name="filename"></param>
-        public MainForm(FileView _fileview)
+        public MainForm(string _filename)
             : this()
         {
-            // set a handle to this form's parent FileView
-            FileViewHandle = _fileview;
-        }
+            // save the filename
+            filename = _filename;
 
-        /// <summary>
-        /// Initialize the form and open a file
-        /// </summary>
-        /// <param name="filename"></param>
-        public MainForm(string filename)
-            : this()
-        {
             //update the cells in the spreadsheet
             updateAllCells();
         }
@@ -76,6 +84,9 @@ namespace SS
             //set up some event handlers
             ssPanel.SelectionChanged += displaySelection;
             ssPanel.PreviewKeyDown += ssPanel_PreviewKeyDown;
+
+            // by default, input is not locked
+            locked = false;
         }
 
         /// <summary>
@@ -272,16 +283,6 @@ namespace SS
         }
 
         /// <summary>
-        /// Event handler for File > Save As
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            saveAs();
-        }
-
-        /// <summary>
         /// Event handler for File > Save
         /// </summary>
         /// <param name="sender"></param>
@@ -308,6 +309,10 @@ namespace SS
         /// <param name="e"></param>
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            // tell the server we're closing the file
+            msgHand.Disconnect();
+
+            // close this spreadsheet
             this.Close();
         }
 
@@ -334,7 +339,7 @@ namespace SS
             {
                 // the options menu is usually hidden, but if other language GUI xmls
                 // were detected, then show it so the languages can be accessed
-                optionsToolStripMenuItem.Visible = true;
+                optionsToolStripMenuItem.Visible = false; // CHANGED FOR SERVER VERSION, WILL NOT SHOW OTHER LANGUAGES NOW
 
                 List<ToolStripItem> languages = new List<ToolStripItem>();
 
@@ -410,6 +415,113 @@ namespace SS
         }
 
         /// <summary>
+        /// Handles a successful Save event
+        /// </summary>
+        private void handleSaved()
+        {
+            // unlock user input
+            unlockInput();
+
+            // tell the model it has no unsaved changes
+            spreadsheetModel.Save();
+        }
+
+        /// <summary>
+        /// Handles an ErrorMessage event
+        /// </summary>
+        private void handleErrorMessage(String message)
+        {
+            // show message to user
+            MessageBox.Show(message);
+        }
+
+        /// <summary>
+        /// Handles an Update event
+        /// </summary>
+        private void handleUpdate(String _version, SyncCell cell)
+        {
+            int tempNew = 0;
+            int tempOld = 0;
+
+            Int32.TryParse(_version, out tempNew);
+            Int32.TryParse(version, out tempOld);
+
+            // check to see if spreadsheet is out of sync. If so, send the resync command and wait for the sync to happen
+            if (tempOld != tempNew - 1)
+            {
+                MessageBox.Show(_version + ", " + version);
+
+                msgHand.Resync();
+                return;
+            }
+
+            // set the new version of the cell
+            version = _version;
+
+            // update the cell
+            foreach (string vcell in spreadsheetModel.SetContentsOfCell(cell.Name, cell.Contents))
+            {
+                // try to update the view for each cell
+                Object returnValue = spreadsheetModel.GetCellValue(vcell);
+                if (returnValue.GetType() == typeof(FormulaError))
+                {
+                    updateCellView(vcell, ((FormulaError)returnValue).Reason);
+                }
+                else
+                {
+                    updateCellView(vcell, returnValue.ToString());
+                }
+            }
+
+            // allow the user to enter changes again
+            unlockInput();
+        }
+
+        private void lockInput()
+        {
+            lock (spreadsheetModel)
+            {
+                locked = true;
+                ssPanel.Enabled = false;
+                contentsTextBox.ReadOnly = true;
+                StartMarquee();
+            }
+        }
+
+        private void unlockInput()
+        {
+            lock (spreadsheetModel)
+            {
+                locked = false;
+                ssPanel.Enabled = true;
+                contentsTextBox.ReadOnly = false;
+                StopMarquee();
+            }
+        }
+
+        /// <summary>
+        /// Handles a Sync event
+        /// </summary>
+        private void handleSync(String _version, IEnumerable<SyncCell> cells)
+        {
+            // set the new version of the cell
+            version = _version;
+
+            // clear the model
+            spreadsheetModel = new Spreadsheet(validate, s => s.ToUpper(), "PS6");
+
+            // update the model for each cell
+            foreach (SyncCell cell in cells)
+                spreadsheetModel.DirectSetCell(cell.Name, cell.Contents);
+
+            // recalculate the view
+            updateAllCells();
+
+            // allow the user to enter changes again
+            unlockInput();
+        }
+
+        /// <summary>
         /// Checks for unsaved changes, and prompts the user about them if they are present
         /// </summary>
         /// <returns>Whether or not to stop due to unsaved changes</returns>
@@ -459,36 +571,16 @@ namespace SS
         /// </summary>
         private void save()
         {
-            // if no filename already exists, treat as saveAs. Otherwise, save file
-            if ((spreadsheetModel.Filename == null) || (spreadsheetModel.Filename == ""))
-                saveAs();
-            else
-                spreadsheetModel.Save(spreadsheetModel.Filename);
+            // don't save yet if input is already locked
+            if (locked)
+                return;
+
+            // lock user input until the save completes
+            lockInput();
+
+            // send the save message to the server
+            msgHand.Save(this.filename);
             
-            // update the status labels and move focus to spreadsheetPanel
-            displaySelection(ssPanel);
-            ssPanel.Focus();
-        }
-
-        /// <summary>
-        /// Saves a spreadsheet by using a save file dialog
-        /// </summary>
-        private void saveAs()
-        {
-            // set up the filter to add .ss if (*.ss) is selected and it's not already present
-            saveFileDialog1.AddExtension = true;
-            saveFileDialog1.Filter = "Spreadsheet files (*.ss)|*.ss|All files (*.*)|*.*";
-
-            // show the save file dialog
-            saveFileDialog1.ShowDialog(this);
-
-            // if filename is non-blank save the spreadsheet
-            if (saveFileDialog1.FileName != "")
-            {
-                saveSpreadsheetModel(saveFileDialog1.FileName);
-                spreadsheetModel.Filename = saveFileDialog1.FileName;
-            }
-
             // update the status labels and move focus to spreadsheetPanel
             displaySelection(ssPanel);
             ssPanel.Focus();
@@ -514,35 +606,15 @@ namespace SS
         {
             List<string> returnSet = new List<string>();
 
-            // try to update the model with the new content
-            try
-            {
-                foreach (string cell in spreadsheetModel.SetContentsOfCell("" + (char)('A' + col) + (row + 1), text))
-                {
-                    // try to update the view for each cell
-                    Object returnValue = spreadsheetModel.GetCellValue(cell);
-                    if (returnValue.GetType() == typeof(FormulaError))
-                    {
-                        MessageBox.Show(((FormulaError)returnValue).Reason);
-                        updateCellView(cell, ((FormulaError)returnValue).Reason);
-                    }
-                    else
-                    {
-                        updateCellView(cell, returnValue.ToString());
-                    }
-                }
-            }
-            catch (CircularException)
-            {
-                // handle circular exception
-                MessageBox.Show("The entered formula contains a circular dependency. Please modify it and try again.");
-            }
-            catch (Exception e)
-            {
-                // handle all other exceptions
-                MessageBox.Show(e.Message);
+            // if the spreadsheet is locked, do nothing
+            if (locked)
                 return false;
-            }
+
+            // prevent the user from entering any more input until the server responds
+            lockInput();
+
+            // send the new cell contents to the server
+            msgHand.EnterChange(version, new SyncCell("" + (char)('A' + col) + (row + 1), text));
 
             return true;
         }
@@ -634,6 +706,22 @@ namespace SS
 
             // update spreadsheet display to new language
             displaySelection(ssPanel);
+        }
+
+        // handles the undo menu item
+        private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            undo();
+        }
+
+        // sends an undo command to the server
+        private void undo()
+        {
+            if (!locked)
+            {
+                // send the undo command with the spreadsheet's current version
+                msgHand.Undo(version);
+            }
         }
     }
 
