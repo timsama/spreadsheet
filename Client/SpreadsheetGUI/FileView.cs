@@ -15,6 +15,7 @@ namespace SS
         // tracks how many Spreadsheet MainForms are open
         private int childcount;
         private MessageHandler msgHand;
+        private String selectedFilename;
 
         // if FileView is a child form, always pass in its parent's MessageHandler
         public FileView()
@@ -32,6 +33,12 @@ namespace SS
             childcount = 0;
             InitializeComponent();
             this.FormClosing += FileView_FormClosing;
+        }
+
+        // returns the MessageHandler associated with this FileView
+        public MessageHandler getMessageHandler()
+        {
+            return this.msgHand;
         }
 
         // resets the controls in the FileView form
@@ -53,6 +60,9 @@ namespace SS
         // resets the controls in the FileView form
         public void ResetControls()
         {
+            // no file is currently selected
+            selectedFilename = "";
+
             // revert the dialog's appearance
             StopCreateMarquee();
             StopOpenMarquee();
@@ -111,30 +121,20 @@ namespace SS
             {
                 filesListBox.Items.Add(file);
             }
+
+            // no file is currently selecte
+            selectedFilename = "";
         }
 
-        // to be registered with an event for when the file has been received, string s should contain the spreadsheet XML
-        private void Open(String s)
-        {
-            // unregister so later file openings don't trigger this
-            msgHand.FileOpened -= Open;
-
-            // open the file
-            Form handle = new MainForm(this);
-            childcount++;
-            handle.FormClosed += Child_Closed;
-            handle.Show();
-            this.Hide();
-        }
-
-        // to be registered with an event for when an update has been received, string name should contain the cell name, and string contents should contain the cell contents
-        private void Update(String name, String contents)
+        // to be registered with an event for when an update has been received. Version contains the latest version number for the file
+        // SyncCell contains the cell name and contents (should be blank for all FileView purposes)
+        private void Update(String version, SyncCell cell)
         {
             // unregister so later file openings don't trigger this
             msgHand.Updated -= Update;
 
             // open the file
-            Form handle = new MainForm(this);
+            Form handle = new MainForm(selectedFilename, version, this);
             childcount++;
             handle.FormClosed += Child_Closed;
             handle.Show();
@@ -168,8 +168,11 @@ namespace SS
         // opens a spreadsheet file
         private bool openSpreadsheet(string filename)
         {
+            // save the filename for creation of the MainForm later
+            selectedFilename = filename;
+
             // add the Open method to the list of event handlers for the message handler
-            msgHand.FileOpened += Open;
+            msgHand.Updated += Update;
             msgHand.OpenFile(filename);
 
             return false;
@@ -178,6 +181,9 @@ namespace SS
         // creates a spreadsheet file
         private bool createSpreadsheet(string filename)
         {
+            // save the filename for creation of the MainForm later
+            selectedFilename = filename;
+
             // add the Open method to the list of event handlers for the message handler
             msgHand.Updated += Update;
             msgHand.CreateFile(filename);
@@ -210,7 +216,10 @@ namespace SS
         // handles the Create New Spreadsheet button
         private void createButton_Click(object sender, EventArgs e)
         {
+            // trim out whitespace and remove any char27s from the filename
             String filename = filenameTextBox.Text.Trim();
+            String esc = "" + (char)27;
+            filename = filename.Replace(esc, "");
 
             // if nothing is selected, just return from the function without doing anything
             if (filename.Length == 0)

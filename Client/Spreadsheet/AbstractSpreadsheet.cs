@@ -370,7 +370,8 @@ namespace SS
             {
                 if (n.Equals(start))
                 {
-                    throw new CircularException();
+                    // Circular Dependency is now checked on the Server
+                    //throw new CircularException();
                 }
                 else if (!visited.Contains(n))
                 {

@@ -149,14 +149,14 @@ namespace SS
             if (Double.TryParse(content, out dblValue))
             {
                 // add each cell to the return set
-                foreach(string cellname in SetCellContents(name, dblValue))
+                foreach (string cellname in SetCellContents(name, dblValue))
                     returnSet.Add(cellname);
             }
             // if the first character is '=' then try to parse the content as a Formula
             else if ((content.Length > 0) && (content.ElementAt(0) == '='))
             {
                 // remove the leading '=' when trying to parse as a Formula
-                Formula formulaValue = new Formula(content.Substring(1, content.Length-1), Normalize, IsValid);
+                Formula formulaValue = new Formula(content.Substring(1, content.Length - 1), Normalize, IsValid);
 
                 // add each cell to the return set
                 foreach (string cellname in SetCellContents(name, formulaValue))
@@ -182,6 +182,112 @@ namespace SS
             }
 
             return returnSet;
+        }
+
+        /// <summary>
+        /// Sets the contents of a cell directly, with no error checking (used for Server Syncing)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public void DirectSetCell(String name, String content)
+        {
+            double dblValue;
+
+            // normalize the name
+            Normalize(name);
+
+            // check name for null-string and invalid format
+            checkName(name);
+
+            // try to parse the content as a double
+            if (Double.TryParse(content, out dblValue))
+            {
+                DirectSet(name, dblValue);
+            }
+            // if the first character is '=' then try to parse the content as a Formula
+            else if ((content.Length > 0) && (content.ElementAt(0) == '='))
+            {
+                // remove the leading '=' when trying to parse as a Formula
+                Formula formulaValue = new Formula(content.Substring(1, content.Length - 1), Normalize, IsValid);
+                SetCellContents(name, formulaValue);
+            }
+            // otherwise, set the content as a string
+            else
+            {
+                DirectSet(name, content);
+            }
+        }
+
+        protected void DirectSet(String name, double number)
+        {
+            Cell editCell;
+
+            // check name for null-string and invalid format
+            checkName(name);
+
+            // try to get an existing cell with this name. If none exists, create one
+            if (cellSet.TryGetValue(name, out editCell))
+            {
+                // set the new double value equal to the passed-in value
+                editCell.Contents = number;
+            }
+            else
+            {
+                // add a newly-created cell
+                cellSet.Add(name, new Cell(name, number, Normalize, Lookup));
+            }
+        }
+
+        protected void DirectSet(String name, String text)
+        {
+            Cell editCell;
+
+            // check name for null-string and invalid format
+            checkName(name);
+
+            // try to get an existing cell with this name. If none exists, create one
+            if (cellSet.TryGetValue(name, out editCell))
+            {
+                // set the new text equal to the passed-in value
+                editCell.Contents = text;
+            }
+            // if the string is empty, no need to create a new cell
+            else if (text != "")
+            {
+                // add a newly-created cell
+                cellSet.Add(name, new Cell(name, text, Normalize, Lookup));
+            }
+        }
+
+        protected void DirectSet(String name, Formula formula)
+        {
+            List<string> formulaVariables = new List<string>();
+            Cell editCell;
+
+            // check name for null-string and invalid format
+            checkName(name);
+
+            // normalize the formula's variable names
+            foreach (string variable in formula.GetVariables())
+            {
+                formulaVariables.Add(Normalize(variable));
+            }
+
+            // update the cell's dependencies
+            cellGraph.ReplaceDependees(name, formulaVariables);
+
+            // try to get an existing cell with this name. If none exists, create one
+            if (cellSet.TryGetValue(name, out editCell))
+            {
+                // set the new formula equal to the passed-in value
+                editCell.Contents = formula;
+            }
+            else
+            {
+                // add a newly-created cell since we couldn't find one
+                cellSet.Add(name, new Cell(name, formula, Normalize, Lookup));
+            }
         }
 
         /// <summary>
@@ -499,95 +605,16 @@ namespace SS
             }
         }
 
-        /// <summary>
-        /// Writes the contents of this spreadsheet to the named file using an XML format.
-        /// The XML elements should be structured as follows:
-        /// 
-        /// <spreadsheet version="version information goes here">
-        /// 
-        /// <cell>
-        /// <name>
-        /// cell name goes here
-        /// </name>
-        /// <contents>
-        /// cell contents goes here
-        /// </contents>    
-        /// </cell>
-        /// 
-        /// </spreadsheet>
-        /// 
-        /// There should be one cell element for each non-empty cell in the spreadsheet.  
-        /// If the cell contains a string, it should be written as the contents.  
-        /// If the cell contains a double d, d.ToString() should be written as the contents.  
-        /// If the cell contains a Formula f, f.ToString() with "=" prepended should be written as the contents.
-        /// 
-        /// If there are any problems opening, writing, or closing the file, the method should throw a
-        /// SpreadsheetReadWriteException with an explanatory message.
-        /// </summary>
-        public override void Save(String filename)
+        // the AbstractSpreadsheet interface requires this
+        public override void Save(string filename)
         {
-            try
-            {
-                // open file for writing
-                XmlWriter xWriter = XmlWriter.Create(filename);
+            Save();
+        }
 
-                try
-                {
-                    // begin spreadsheet tag
-                    xWriter.WriteStartElement("spreadsheet");
-                    xWriter.WriteAttributeString("version", Version);
-
-                    // loop through all cells, writing each to the file
-                    foreach (KeyValuePair<string, Cell> pair in cellSet)
-                    {
-                        // begin the cell tag
-                        xWriter.WriteStartElement("cell");
-
-                        // write the name tag
-                        xWriter.WriteStartElement("name");
-                        xWriter.WriteString(pair.Key);
-                        xWriter.WriteEndElement();
-
-                        // write the contents tag
-                        xWriter.WriteStartElement("contents");
-                        xWriter.WriteString(pair.Value.ToString());
-                        xWriter.WriteEndElement();
-
-                        // end the cell tag
-                        xWriter.WriteEndElement();
-                    }
-
-                    // end the spreadsheet tag
-                    xWriter.WriteEndElement();
-
-                    // freshly-saved spreadsheet means nothing has changed yet
-                    Changed = false;
-                }
-                // this should activate in the case of simultaneous write attempts
-                // but I haven't gotten a unit test written that can do that as of yet
-                catch
-                {
-                    throw new SpreadsheetReadWriteException("Error writing to spreadsheet file \"" + filename + "\".");
-                }
-                finally
-                {
-                    // close the file no matter what, throw an exception if it fails
-                    try
-                    {
-                        xWriter.Close();
-                    }
-                    // this block should never run, but exists for possible future debugging
-                    catch
-                    {
-                        throw new SpreadsheetReadWriteException("Error closing spreadsheet file \"" + filename + "\".");
-                    }
-                }
-            }
-            catch
-            {
-                // the file failed to open, throw an exception
-                throw new SpreadsheetReadWriteException("Error opening spreadsheet file \"" + filename + "\".");
-            }
+        public void Save()
+        {
+            // freshly-saved spreadsheet means nothing has changed yet
+            Changed = false;
         }
 
         /// <summary>
