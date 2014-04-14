@@ -2,7 +2,9 @@
  * A class to model a set of ordered pairs of strings
  */
 
-#include "dg.h"
+#include "dependency_graph.h"
+
+namespace sss {
 
 dependency_node::dependency_node(std::string n) { }
 
@@ -169,5 +171,7 @@ void dependency_graph::replace_dependees (std::string s, std::set<std::string> n
   for(std::set<std::string>::iterator it = new_dependees.begin(); it != new_dependees.end(); ++it) {
     this->add_dependency(*it, s);
   }
+
+}
 
 }

@@ -1,4 +1,4 @@
-#include "dg.h"
+#include "dependency_graph.h"
 
 #include <iostream>
 
@@ -7,7 +7,7 @@ using namespace std;
 int main() {
   std::cout << "Starting Dependency Graph Test" << std::endl;
 
-  dependency_graph d;
+  sss::dependency_graph d;
 
   // Zero Size
   if(d.size() == 0) std::cout << "PASS" << std::endl;

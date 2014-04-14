@@ -10,6 +10,8 @@
 #ifndef DEPENDENCY_GRAPH_H
 #define DEPENDENCY_GRAPH_H
 
+namespace sss {
+
 class dependency_node {
 
  private:
@@ -49,4 +51,5 @@ class dependency_graph {
 
 };
 
+}
 #endif
