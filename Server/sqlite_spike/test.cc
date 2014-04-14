@@ -66,9 +66,8 @@ int64_t spreadsheet_enter(sqlite3 *db, string spreadsheet, string cell, string c
     // Return new rowid (useful as a verison number)
     return sqlite3_last_insert_rowid(db);
   } else {
-    cout << "There was an error preparing the statement: " << rc << " " << sqlite3_errmsg(db) << endl;
+    cout << "There was an error preparing the statement: " << result << " " << sqlite3_errmsg(db) << endl;
     return 0;
   } 
     
 }
-
