@@ -28,7 +28,7 @@ namespace BC
 
         private void Play_button_Click(object sender, EventArgs e)
         {
-            model.Connect("localhost", 2000, player_textbox.Text);
+            model.Connect("155.98.111.73", 2500, player_textbox.Text);
             player_textbox.ReadOnly = true;
             Play_button.Visible = false;
             

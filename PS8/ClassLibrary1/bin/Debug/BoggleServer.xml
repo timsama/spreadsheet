@@ -1,0 +1,341 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BoggleServer</name>
+    </assembly>
+    <members>
+        <member name="T:BB.BoggleBoard">
+            <summary>
+            Represents a Boggle board.
+            </summary>
+        </member>
+        <member name="M:BB.BoggleBoard.#ctor">
+            <summary>
+            Creates a randomly-generated BoggleBoard 
+            </summary>
+        </member>
+        <member name="M:BB.BoggleBoard.#ctor(System.String)">
+            <summary>
+            Creates a BoggleBoard from the provided 16-letter string.  The
+            method is case-insensitive.  If there aren't exactly 16 letters
+            in the string, throws an ArgumentException.  The string consists
+            of the first row, then the second row, then the third, then the fourth.
+            </summary>
+        </member>
+        <member name="M:BB.BoggleBoard.MakeBoard(System.String)">
+            <summary>
+            Makes a board from the 16-letter string
+            </summary>
+        </member>
+        <member name="M:BB.BoggleBoard.ToString">
+            <summary>
+            Returns the 16 letters that make up this board.  It is formed
+            by appending the first row to the second row to the third row
+            to the fourth row.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:BB.BoggleBoard.CanBeFormed(System.String)">
+            <summary>
+            Reports whether the provided word can be formed by tracking through
+            this Boggle board as described in the rules of Boggle.  The method
+            is case-insensitive.
+            </summary>
+        </member>
+        <member name="M:BB.BoggleBoard.CanBeFormed(System.String,System.Int32,System.Int32,System.Boolean[0:,0:])">
+            <summary>
+            Reports whether the provided word can be formed by tracking through
+            this Boggle board by beginning at location [i,j] and avoiding any
+            squares marked as visited.
+            </summary>
+        </member>
+        <member name="M:BC.BoggleServer.Main(System.String[])">
+            <summary>
+            Starts a BoggleServer
+            </summary>
+            <param name="args">Game duration (sec), Dictionary file, [Starting boardface]</param>
+        </member>
+        <member name="M:BC.BoggleServer.#ctor(System.Int32,System.String)">
+            <summary>
+            Initializes the server to a game length (in seconds) and a dictionary to compare words against
+            </summary>
+            <param name="_gameLength"></param>
+            <param name="dictionary_path"></param>
+            <param name="_boardFace"></param>
+        </member>
+        <member name="M:BC.BoggleServer.#ctor(System.Int32,System.String,System.String)">
+            <summary>
+            Initializes the server to a game length (in seconds), a dictionary to compare words against, and a specific board configuration
+            </summary>
+            <param name="_gameLength"></param>
+            <param name="dictionary_path"></param>
+            <param name="_boardFace"></param>
+        </member>
+        <member name="M:BC.BoggleServer.PortConnection(System.IAsyncResult)">
+            <summary>
+            Deals with clients requesting a connection to the server on port 2000
+            For every two clients that connect, pair them in a game
+            </summary>
+            <param name="ar"></param>
+        </member>
+        <member name="M:BC.BoggleServer.NameReceived(System.String,System.Exception,System.Object)">
+            <summary>
+            Deals with lines of text as they arrive at the server.
+            </summary>
+            <param name="s"></param>
+            <param name="e"></param>
+            <param name="payload"></param>
+        </member>
+        <member name="M:BC.BoggleServer.MessageReceived(System.String,System.Exception,System.Object)">
+            <summary>
+            Deals with lines of text as they arrive at the server.
+            </summary>
+            <param name="s"></param>
+            <param name="e"></param>
+            <param name="payload"></param>
+        </member>
+        <member name="M:BC.BoggleServer.BuildDictionaryFromPath(System.String)">
+            <summary>
+            Builds a HashSet of strings from a file representing the dictionary of legal Boggle words
+            </summary>
+            <param name="dictionary_path"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BC.BoggleServer.BeginGame(BC.Game)">
+            <summary>
+            Sends the begin information to the players
+            </summary>
+            <param name="p1"></param>
+            <param name="p2"></param>
+        </member>
+        <member name="M:BC.BoggleServer.Countdown(BC.Player,BC.Player,System.Int32)">
+            <summary>
+            Sends the current countdown information to the players
+            </summary>
+            <param name="p1"></param>
+            <param name="p2"></param>
+            <param name="secondsRemaining"></param>
+        </member>
+        <member name="M:BC.BoggleServer.UpdateScore(BC.Player,BC.Player,System.Int32,System.Int32)">
+            <summary>
+            Sends a score update to the players
+            </summary>
+            <param name="p1"></param>
+            <param name="p2"></param>
+            <param name="p1score"></param>
+            <param name="p2score"></param>
+        </member>
+        <member name="M:BC.BoggleServer.SendToPlayer(BC.Player,System.String)">
+            <summary>
+            Helper function to send a message to a player
+            </summary>
+            <param name="p"></param>
+            <param name="s"></param>
+        </member>
+        <member name="M:BC.BoggleServer.Terminate(System.Object,BC.DisconnectedPlayerEventArgs)">
+            <summary>
+            Sends a termination message when one player has disconnected
+            </summary>
+            <param name="p1"></param>
+            <param name="p2"></param>
+        </member>
+        <member name="M:BC.BoggleServer.Ignore(System.Object,BC.IgnoreCommandEventArgs)">
+            <summary>
+            Responds to an illegal command from a player
+            </summary>
+            <param name="p"></param>
+        </member>
+        <member name="M:BC.BoggleServer.EndGame(BC.Game)">
+            <summary>
+            Sends the final score and game summary to the players
+            </summary>
+            <param name="game"></param>
+        </member>
+        <member name="M:BC.BoggleServer.GetString(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Returns a count of the items in a list, and then enumerates the list. Everything is returned in a single string
+            </summary>
+            <param name="list">A list of strings comprising the set we want to convert to string</param>
+            <returns></returns>
+        </member>
+        <member name="M:BC.BoggleServer.IsInDictionary(System.String)">
+            <summary>
+            Returns whether or not a string is contained in the Boggle Dictionary.
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BC.BoggleServer.callback(System.Exception,System.Object)">
+            <summary>
+            Unimplemented delegate to use as a placeholder
+            </summary>
+            <param name="e"></param>
+            <param name="payload"></param>
+        </member>
+        <member name="M:BC.BoggleServer.CloseSocketCallback(System.Exception,System.Object)">
+            <summary>
+            Callback used when the a socket disconnects and the sockets need to be closed
+            </summary>
+            <param name="e"></param>
+            <param name="payload"></param>
+        </member>
+        <member name="M:BC.BoggleServer.CloseServer">
+            <summary>
+            Method used to close the server
+            </summary>
+        </member>
+        <member name="T:BC.IgnoreCommandEventArgs">
+            <summary>
+            Represents an event where a command to be ignored has been entered
+            </summary>
+        </member>
+        <member name="M:BC.IgnoreCommandEventArgs.#ctor(BC.Player)">
+            <summary>
+            Sets the socket object, then calls the base constructor
+            </summary>
+            <param name="_socket"></param>
+        </member>
+        <member name="T:BC.GetWordEventArgs">
+            <summary>
+            Represents an event where a word was received from a player
+            </summary>
+        </member>
+        <member name="M:BC.GetWordEventArgs.#ctor(System.String,System.Int32)">
+            <summary>
+            Sets the word and player information, then calls the base constructor
+            </summary>
+            <param name="_word"></param>
+            <param name="_player"></param>
+        </member>
+        <member name="T:BC.DisconnectedPlayerEventArgs">
+            <summary>
+            Represents an event where a player has disconnected
+            </summary>
+        </member>
+        <member name="M:BC.DisconnectedPlayerEventArgs.#ctor(System.Object)">
+            <summary>
+            Sets the socket of the disconnected player, then calls the base constructor
+            </summary>
+            <param name="_socket"></param>
+        </member>
+        <member name="T:BC.PlayerQueue">
+            <summary>
+            Represents a queue of players waiting to start a Boggle game
+            </summary>
+        </member>
+        <member name="M:BC.PlayerQueue.RemoveCancelledPlayers">
+            <summary>
+            Removes players who have disconnected before being paired
+            </summary>
+        </member>
+        <member name="M:BC.PlayerQueue.Enqueue(BC.Player)">
+            <summary>
+            Adds a player to the player queue
+            </summary>
+            <param name="p"></param>
+        </member>
+        <member name="M:BC.PlayerQueue.Dequeue">
+            <summary>
+            Removes a player from the player queue
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:BC.PlayerQueue.Cancel(System.Int32)">
+            <summary>
+            Cancels a player's play request by holding their hashcode
+            </summary>
+            <param name="p"></param>
+        </member>
+        <member name="T:BC.Game">
+            <summary>
+            Represents an ongoing game of Boggle
+            </summary>
+        </member>
+        <member name="M:BC.Game.#ctor(System.Int32,BC.Player,BC.Player,System.String,BC.BoggleServer)">
+            <summary>
+            Constructor to start a new game
+            </summary>
+            <param name="_length">Length of the game, in seconds</param>
+            <param name="_p1">Player 1 object</param>
+            <param name="_p2">Player 2 object</param>
+            <param name="BoardFace">Configuration of the board face</param>
+        </member>
+        <member name="M:BC.Game.Countdown(System.Object,System.Timers.ElapsedEventArgs)">
+            <summary>
+            Event handler that is called every second to update timers for the players
+            </summary>
+            <param name="source"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:BC.Game.EndGame(System.Object,System.Timers.ElapsedEventArgs)">
+            <summary>
+            Event handler for when the game timer runs out
+            </summary>
+            <param name="source"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:BC.Game.StopTimers(System.Object,BC.DisconnectedPlayerEventArgs)">
+            <summary>
+            Event handler to stop timers when a player is disconnected
+            </summary>
+            <param name="source"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:BC.Game.OnGetWord(System.Object,BC.GetWordEventArgs)">
+            <summary>
+            Event handler for getting a word from a player
+            </summary>
+            <param name="source"></param>
+            <param name="e"></param>
+        </member>
+        <member name="M:BC.Game.CalculateScore(BC.Player)">
+            <summary>
+            Returns a players score by calculating the points for legal words and then subtracting points for illegal words
+            </summary>
+            <param name="p"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BC.Game.GetPlayer(System.Int32)">
+            <summary>
+            Returns the player associated with a given hashcode (obtained from the player's StringSocket.GetHashCode())
+            </summary>
+            <param name="hashcode"></param>
+            <returns></returns>
+        </member>
+        <member name="T:BC.Player">
+            <summary>
+            Represents a player of a boggle game
+            </summary>
+        </member>
+        <member name="T:BC.LegalWordSet">
+            <summary>
+            Represents a set of Legal Words
+            </summary>
+        </member>
+        <member name="M:BC.LegalWordSet.#ctor">
+            <summary>
+            Constructor for a set of legal words
+            </summary>
+        </member>
+        <member name="M:BC.LegalWordSet.GetScore">
+            <summary>
+            Returns the current total score of all of the words in the set
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:BC.LegalWordSet.Add(System.String)">
+            <summary>
+            Overrides the base Add of HashSet to keep a running total of the score of all words in the set
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BC.LegalWordSet.Remove(System.String)">
+            <summary>
+            Overrides the base Remove of HashSet to keep a running total of the score of all words in the set
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

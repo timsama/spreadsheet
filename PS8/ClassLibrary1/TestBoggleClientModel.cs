@@ -47,6 +47,10 @@ namespace BC
         /// <param name="line"></param>
         public void SendMessage(String line)
         {
+            String esc = "" + (char)27;
+            String newline = "" + '\n';
+            line = line.Replace("\\e", esc);
+            line = line.Replace("\\n", newline);
             try
             {
                 if (socket != null)

@@ -108,7 +108,7 @@
             this.ipTextBox.Name = "ipTextBox";
             this.ipTextBox.Size = new System.Drawing.Size(110, 20);
             this.ipTextBox.TabIndex = 10;
-            this.ipTextBox.Text = "127.0.0.1";
+            this.ipTextBox.Text = "155.98.111.73";
             this.ipTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ipTextBox_KeyPress);
             // 
             // LoginForm

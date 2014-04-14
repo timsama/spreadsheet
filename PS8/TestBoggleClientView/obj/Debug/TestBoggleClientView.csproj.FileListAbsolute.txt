@@ -1,0 +1,16 @@
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\boggle_words.txt
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\TestBoggleClientView.exe.config
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\TestBoggleClientView.exe
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\TestBoggleClientView.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\BoggleServer.exe
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\ClassLibrary1.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\StringSocket.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\BoggleServer.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\BoggleServer.xml
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\bin\Debug\ClassLibrary1.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\obj\Debug\TestBoggleClientView.csprojResolveAssemblyReference.cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\obj\Debug\BC.Form1.resources
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\obj\Debug\TestBoggleClientView.Properties.Resources.resources
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\obj\Debug\TestBoggleClientView.csproj.GenerateResource.Cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\obj\Debug\TestBoggleClientView.exe
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\TestBoggleClientView\obj\Debug\TestBoggleClientView.pdb

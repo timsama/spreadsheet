@@ -1,0 +1,9 @@
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\bin\Debug\BoggleServer.exe.config
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\bin\Debug\boggle_words.txt
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\bin\Debug\BoggleServer.XML
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\bin\Debug\BoggleServer.exe
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\bin\Debug\BoggleServer.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\bin\Debug\StringSocket.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\obj\Debug\BoggleServer.csprojResolveAssemblyReference.cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\obj\Debug\BoggleServer.exe
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS8\BoggleServer\obj\Debug\BoggleServer.pdb

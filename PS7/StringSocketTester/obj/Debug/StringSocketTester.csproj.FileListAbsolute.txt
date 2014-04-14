@@ -1,0 +1,11 @@
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\bin\Debug\bacon.txt
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\bin\Debug\StringSocketTester.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\bin\Debug\StringSocketTester.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\bin\Debug\StringSocket.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\bin\Debug\StringSocket.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\bin\Debug\StringSocket.xml
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\obj\Debug\StringSocketTester.csprojResolveAssemblyReference.cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\obj\Debug\StringSocketTester.Properties.Resources.resources
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\obj\Debug\StringSocketTester.csproj.GenerateResource.Cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\obj\Debug\StringSocketTester.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS7\StringSocketTester\obj\Debug\StringSocketTester.pdb

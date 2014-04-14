@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CustomNetworking;
+using System.Net;
+using System.Net.Sockets;
 
 namespace SS
 {
@@ -24,6 +27,8 @@ namespace SS
 
     public class MessageHandler
     {
+        TcpClient client;
+        private StringSocket outSocket;
         public readonly String IpAddress, PortNumber, Password;
 
         // register for this event to be notified when a login has succeeded. List<String> contains a list of filenames as individual strings
@@ -52,6 +57,13 @@ namespace SS
 
         }
 
+        // destructor
+        ~MessageHandler()
+        {
+            if (client != null)
+                client.Close();
+        }
+
         // constructor
         public MessageHandler(String _ipAddress, String _portNumber, String _password)
         {
@@ -75,16 +87,51 @@ namespace SS
         }
 
         // called by the StringSocket when a message is received
-        public void ReceiveMessage(String message)
+        // evaluate message to determine which event to raise, and what values to pass in it
+        public void ReceiveMessage(String message, Exception e, object payload)
         {
-            // evaluate message; determine which event to raise, and what values to pass in it
+            //System.Windows.Forms.MessageBox.Show(message);
+
+            // get the keyword (i.e. the first word of the message)
+            String keyword;
+
+            // check to see if the message is escape-delimited or a single keyword (i.e. no char27 between the beginning of the message and the \n)
+            if (message.Contains((char)27))
+            {
+                keyword = message.Substring(0, message.IndexOf((char)27));
+
+                // shorten the string to no longer include the keyword
+                message = message.Substring(message.IndexOf((char)27) + 1);
+            }
+            else
+            {
+                keyword = message.Substring(0, message.IndexOf('\n'));
+                message = "\n";
+            }
+
+            //System.Windows.Forms.MessageBox.Show(keyword);
+
+            switch (keyword)
+            {
+                case "FILELIST":
+                    TriggerLoggedIn(message);
+                    break;
+                case "INVALID":
+                    TriggerPasswordRejected();
+                    break;
+                case "ERROR":
+                    ErrorMessage(message);
+                    break;
+            }
+
+            //outSocket.BeginReceive(ReceiveMessage, null);
         }
 
         // connects a StringSocket to the server
         public void Connect(String ipAddress, String portNumber)
         {
             // DEBUG: REMOVE BEFORE RELEASE
-            System.Windows.Forms.MessageBox.Show("Connecting to server " + ipAddress + ":" + portNumber);
+            // System.Windows.Forms.MessageBox.Show("Connecting to server " + ipAddress + ":" + portNumber);
         }
 
         /********************************/
@@ -98,16 +145,30 @@ namespace SS
         }
 
         // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
-        public void TriggerLoggedIn()
+        public void TriggerLoggedIn(String message)
         {
-            List<String> filelist = new List<string>();
+            List<String> filenames = new List<string>();
 
-            filelist.Add("File1");
-            filelist.Add("CherryCoke");
-            filelist.Add("LastFile");
+            // loop while there are still files in the list
+            while (message.Contains((char)27))
+            {
+                // add first filename in the message to the list of filenames
+                filenames.Add(message.Substring(0, message.IndexOf((char)27)));
 
+                // remove the filename from the message
+                message = message.Substring(message.IndexOf((char)27) + 1);
+            }
+
+            // there is only one or zero file left in the list
+
+            String newline = "" + '\n';
+            String file = message.Replace(newline, "");
+                if (file.Trim().Length > 0)
+                    filenames.Add(file);
+
+            // call the login event if it has any listeners
             if(LoggedIn != null)
-                LoggedIn(filelist);
+                LoggedIn(filenames);
         }
 
         // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
@@ -138,21 +199,48 @@ namespace SS
         /* END DEBUG TRIGGERS SECTION */
         /******************************/
 
-        // sends the given message
-        private void Send(string message)
-        {
-            // DEBUG: REMOVE BEFORE RELEASE
-            System.Windows.Forms.MessageBox.Show(message);
-        }
-
         // logs into the server
         public void Login(string password)
         {
-            // send the PASSWORD command with the password
-            Send("PASSWORD" + (char)27 + password + "\n");
+            try
+            {
+                int port;
+                Int32.TryParse(PortNumber, out port);
+
+                // start the TCP client
+                if (client == null)
+                    client = new TcpClient(IpAddress, port);
+
+                // set up the StringSockets
+                if (outSocket == null)
+                    outSocket = new StringSocket(client.Client, UTF8Encoding.Default);
+                
+                // send the PASSWORD command with the password
+                outSocket.BeginSend("PASSWORD" + (char)27 + password + "\n", (e, o) => { }, null);
+
+                // start listening for reponses
+                outSocket.BeginReceive(ReceiveMessage, null);
+            }
+            catch (SocketException e)
+            {
+                ErrorMessage(e.Message);
+                //ErrorMessage("Server is not available. Please try again.");
+            }
+        }
+
+        // sends the given message
+        private void Send(string message)
+        {
+            // remove \e and \n (could be entered by user), but not (char)27s entered by the system
+            message = message.Replace("\\e", "");
+            message = message.Replace("\\n", "");
+            message = message.Replace("\n", "") +"\n";
+
+            outSocket.BeginSend(message, (e, o) => { }, null);
+            outSocket.BeginReceive(ReceiveMessage, null);
 
             // DEBUG: REMOVE BEFORE RELEASE
-            TriggerLoggedIn();
+            //System.Windows.Forms.MessageBox.Show(message);
         }
 
         // opens the named spreadsheet

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace SS
 {
@@ -27,12 +28,12 @@ namespace SS
         // starts the progress bar marquee's animation
         private void StartMarquee()
         {
-            loginProgressBar.Style = ProgressBarStyle.Marquee;
+            loginProgressBar.BeginInvoke(new Action(()=>{loginProgressBar.Style = ProgressBarStyle.Marquee;}));
         }
         // stops the progress bar marquee's animation
         private void StopMarquee()
         {
-            loginProgressBar.Style = ProgressBarStyle.Blocks;
+            loginProgressBar.BeginInvoke(new Action(() => { loginProgressBar.Style = ProgressBarStyle.Blocks; }));
         }
 
         // event handler for "Log In" button
@@ -42,7 +43,9 @@ namespace SS
             if (validateLogin())
             {
                 // disable the password field and show a progress bar to indicate that program is connecting to server
-                passwordTextBox.ReadOnly = true;
+                passwordTextBox.BeginInvoke(new Action(() => { passwordTextBox.ReadOnly = true; }));
+                ipTextBox.BeginInvoke(new Action(() => { ipTextBox.ReadOnly = true; }));
+                portTextBox.BeginInvoke(new Action(() => { portTextBox.ReadOnly = true; }));
                 StartMarquee();
 
                 // initialize an empty list to hold the available files on the server
@@ -50,13 +53,20 @@ namespace SS
 
                 // set up message handler if one hasn't been set up already
                 if (msgHand == null)
+                {
                     msgHand = new MessageHandler(ipTextBox.Text, portTextBox.Text, passwordTextBox.Text);
+                    msgHand.ErrorMessage += HandleErrorMessage;
+                }
 
                 // set up the fileview if one hasn't been set up already
                 if (fileview == null)
                 {
                     fileview = new FileView(msgHand);
                     fileview.FormClosed += Shutdown;
+                    
+                    // these are necessary for when the fileview window is invoked from another thread
+                    fileview.Show();
+                    fileview.Hide();
                 }
 
                 // log in using the given password
@@ -79,7 +89,8 @@ namespace SS
             Regex portRegex = new Regex(portPattern);
             
             // test the ip address and port to make sure they're properly formatted
-            bool ipValid = ipRegex.IsMatch(ipTextBox.Text);
+            //bool ipValid = ipRegex.IsMatch(ipTextBox.Text);
+            bool ipValid = true;
             bool portValid = portRegex.IsMatch(portTextBox.Text);
 
             // show error message based on what, if anything, is invalid
@@ -111,11 +122,12 @@ namespace SS
             StopMarquee();
 
             // password was correct; go to file selection dialog
-            fileview.SetFilesList(files);
-            fileview.Show();
+            fileview.BeginInvoke(new Action(() => { fileview.Show(); }));
+            fileview.BeginInvoke(new Action(() => { fileview.SetFilesList(files); }));
 
             // hide this window, and close it down completely if it has no more child dialogs and is not visible to the user
-            this.Hide();
+            this.BeginInvoke(new Action(() => { this.Hide(); }));
+            
         }
 
         // handles the PasswordRejected event
@@ -128,12 +140,25 @@ namespace SS
             // password was incorrect; tell user so, and reset + re-enable the password field
             StopMarquee();
             MessageBox.Show("Password was incorrect. Please try again.");
-            passwordTextBox.ReadOnly = false;
+            passwordTextBox.BeginInvoke(new Action(() => { passwordTextBox.ReadOnly = false; }));
+            ipTextBox.BeginInvoke(new Action(() => { ipTextBox.ReadOnly = false; }));
+            portTextBox.BeginInvoke(new Action(() => { portTextBox.ReadOnly = false; }));
+        }
+
+        // handles the ErrorMessage event
+        private void HandleErrorMessage(String message)
+        {
+            // password was incorrect; tell user so, and reset + re-enable the password field
+            StopMarquee();
+            MessageBox.Show(message);
+            passwordTextBox.BeginInvoke(new Action(() => { passwordTextBox.ReadOnly = false; }));
         }
 
         // logs in using the given password
         private void login(string password)
         {
+            Thread worker = new Thread(() => msgHand.Login(password));
+
             // set up event handlers in advance
             msgHand.LoggedIn += HandleLoggedIn;
             msgHand.PasswordRejected += HandlePasswordRejected;
@@ -142,7 +167,7 @@ namespace SS
             msgHand.Connect(ipTextBox.Text, portTextBox.Text);
 
             // send the password to the server
-            msgHand.Login(password);
+            worker.Start();
         }
 
         // shut the program down if its child is shut down

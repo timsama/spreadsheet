@@ -84,7 +84,7 @@ namespace BC
             boggleDictionary = BuildDictionaryFromPath(dictionary_path);
 
             // initialize the server and set the port to 2000
-            server = new TcpListener(IPAddress.Any, 2000);
+            server = new TcpListener(IPAddress.Any, 2500);
 
             // initialize locking object
             LockSockets = new Object();

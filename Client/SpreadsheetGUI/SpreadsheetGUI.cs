@@ -604,6 +604,9 @@ namespace SS
         /// <returns></returns>
         private bool updateCellModel(int row, int col, string text)
         {
+            //Formula tester = new Formula(text, s => s.ToUpper(), validate);
+
+
             List<string> returnSet = new List<string>();
 
             // if the spreadsheet is locked, do nothing

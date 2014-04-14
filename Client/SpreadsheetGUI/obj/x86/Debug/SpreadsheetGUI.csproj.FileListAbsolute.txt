@@ -19,3 +19,4 @@ C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\Spreadshee
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUI\obj\x86\Debug\SpreadsheetGUI.pdb
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUI\obj\x86\Debug\SS.LoginForm.resources
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUI\obj\x86\Debug\SS.FileView.resources
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\Client\SpreadsheetGUI\bin\x86\Debug\StringSocket.dll
