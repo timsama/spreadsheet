@@ -604,10 +604,16 @@ namespace SS
         /// <returns></returns>
         private bool updateCellModel(int row, int col, string text)
         {
-            //Formula tester = new Formula(text, s => s.ToUpper(), validate);
-
-
-            List<string> returnSet = new List<string>();
+            try
+            {
+                // remove the leading '=' when trying to parse as a Formula
+                Formula formulaValue = new Formula(text.Substring(1, text.Length - 1), s => s.ToUpper(), validate);
+            }
+            catch (FormulaFormatException e)
+            {
+                MessageBox.Show(e.Message);
+                return false;
+            }
 
             // if the spreadsheet is locked, do nothing
             if (locked)

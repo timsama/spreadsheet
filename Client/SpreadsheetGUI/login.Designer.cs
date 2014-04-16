@@ -104,12 +104,10 @@
             // ipTextBox
             // 
             this.ipTextBox.Location = new System.Drawing.Point(45, 106);
-            this.ipTextBox.MaxLength = 15;
+            this.ipTextBox.MaxLength = 0;
             this.ipTextBox.Name = "ipTextBox";
             this.ipTextBox.Size = new System.Drawing.Size(110, 20);
             this.ipTextBox.TabIndex = 10;
-            this.ipTextBox.Text = "155.98.111.73";
-            this.ipTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ipTextBox_KeyPress);
             // 
             // LoginForm
             // 

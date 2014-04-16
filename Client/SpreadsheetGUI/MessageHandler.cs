@@ -30,6 +30,7 @@ namespace SS
         TcpClient client;
         private StringSocket outSocket;
         public readonly String IpAddress, PortNumber, Password;
+        private int clientVersion;
 
         // register for this event to be notified when a login has succeeded. List<String> contains a list of filenames as individual strings
         public event Action<List<String>> LoggedIn;
@@ -79,9 +80,6 @@ namespace SS
             PortNumber = m.PortNumber;
             Password = m.Password;
 
-            // connect to the same server
-            Connect(IpAddress, PortNumber);
-
             // enter the same password
             Login(Password);
         }
@@ -90,7 +88,7 @@ namespace SS
         // evaluate message to determine which event to raise, and what values to pass in it
         public void ReceiveMessage(String message, Exception e, object payload)
         {
-            //System.Windows.Forms.MessageBox.Show(message);
+            System.Windows.Forms.MessageBox.Show(message);
 
             // get the keyword (i.e. the first word of the message)
             String keyword;
@@ -105,12 +103,10 @@ namespace SS
             }
             else
             {
-                keyword = message.Substring(0, message.IndexOf('\n'));
-                message = "\n";
+                keyword = message;
             }
 
-            //System.Windows.Forms.MessageBox.Show(keyword);
-
+            // trigger a different event based on what keyword has been received
             switch (keyword)
             {
                 case "FILELIST":
@@ -120,31 +116,77 @@ namespace SS
                     TriggerPasswordRejected();
                     break;
                 case "ERROR":
-                    ErrorMessage(message);
+                    TriggerErrorMessage(message);
+                    break;
+                case "UPDATE":
+                    TriggerUpdated(message);
+                    break;
+                case "SAVED":
+                    TriggerSaved();
+                    break;
+                case "SYNC":
+                    TriggerUpdated(message); // originally was its own method, but is literally never meaningfully different than a multicell update, so the two were merged
                     break;
             }
-
-            //outSocket.BeginReceive(ReceiveMessage, null);
         }
 
-        // connects a StringSocket to the server
-        public void Connect(String ipAddress, String portNumber)
+        // prepares and executes an Updated event (triggers a Sync for Updates with multiple cells, because they are identical)
+        public void TriggerUpdated(String message)
         {
-            // DEBUG: REMOVE BEFORE RELEASE
-            // System.Windows.Forms.MessageBox.Show("Connecting to server " + ipAddress + ":" + portNumber);
+            // declare the escape delimiter
+            char[] esc = new char[1];
+            esc[0] = (char)27;
+
+            // declare the collection of SyncCells to use in the spreadsheet
+            List<SyncCell> cells = new List<SyncCell>();
+
+            // get the server's version number
+            String version = message.Substring(0, message.IndexOf(esc[0]));
+            message = message.Substring(message.IndexOf(esc[0]) + 1);
+
+            // parse the server version as an int
+            int serverVersion = 0;
+            Int32.TryParse(version, out serverVersion);
+
+            // if the server version is more than 1 greater than the client version, we missed an update somewhere, so send a resync command and don't bother updating here
+            if (serverVersion > (clientVersion + 1))
+            {
+                Resync();
+                return;
+            }
+
+            // keep track of whether name or contents are currently being specified
+            bool IsName = true;
+            String name = "";
+
+            // iterate over the message to fill the SyncCells
+            foreach (String token in message.Split(esc))
+            {
+                // every other token is a name
+                if (IsName)
+                {
+                    name = token;
+                }
+                else
+                {
+                    cells.Add(new SyncCell(name, token));
+                }
+
+                IsName = !IsName;
+            }
+
+            // call updated for single cell updates; multi cell updates only happen upon file opening or resyncs, so they can be handled like a sync
+            if (cells.Count == 1)
+            {
+                Updated(version, cells.First());
+            }
+            else
+            {
+                Sync(version, cells);
+            }
         }
 
-        /********************************/
-        /* BEGIN DEBUG TRIGGERS SECTION */
-        /********************************/
-
-        // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
-        public void TriggerUpdated(String version, SyncCell cell)
-        {
-            Updated(version, cell);
-        }
-
-        // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
+        // prepares and executes a LoggedIn event
         public void TriggerLoggedIn(String message)
         {
             List<String> filenames = new List<string>();
@@ -171,33 +213,23 @@ namespace SS
                 LoggedIn(filenames);
         }
 
-        // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
+        // prepares and executes a PasswordRejected event
         public void TriggerPasswordRejected()
         {
             PasswordRejected();
         }
 
-        // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
+        // prepares and executes a Saved event
         public void TriggerSaved()
         {
             Saved();
         }
 
-        // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
-        public void TriggerError(string message)
+        // prepares and executes an ErrorMessage event
+        public void TriggerErrorMessage(string message)
         {
             ErrorMessage(message);
         }
-
-        // FOR DEBUG USE ONLY, THIS WILL BE REMOVED
-        public void TriggerSync(String version, List<SyncCell> cells)
-        {
-            Sync(version, cells);
-        }
-
-        /******************************/
-        /* END DEBUG TRIGGERS SECTION */
-        /******************************/
 
         // logs into the server
         public void Login(string password)
@@ -248,9 +280,6 @@ namespace SS
         {
             // send the OPEN command with the filename
             Send("OPEN" + (char)27 + filename + "\n");
-
-            // DEBUG: REMOVE BEFORE RELEASE
-            TriggerUpdated("90", new SyncCell("", ""));
         }
 
         // creates a new spreadsheet
@@ -258,9 +287,6 @@ namespace SS
         {
             // send the CREATE command with the filename
             Send("CREATE" + (char)27 + filename + "\n");
-
-            // DEBUG: REMOVE BEFORE RELEASE
-            TriggerUpdated("0", new SyncCell("", ""));
         }
 
         // saves the spreadsheet
@@ -268,22 +294,12 @@ namespace SS
         {
             // send the SAVE command with the filename
             Send("SAVE" + (char)27 + filename + "\n");
-
-            // DEBUG: REMOVE BEFORE RELEASE
-            TriggerSaved();
         }
 
         // sends a change to the server
         public void EnterChange(String version, SyncCell cell)
         {
             Send("ENTER" + (char)27 + version + (char)27 + cell.Name + (char)27 + cell.Contents + "\n");
-
-
-            // DEBUG: REMOVE BEFORE RELEASE
-            int temp = 0;
-            Int32.TryParse(version, out temp);
-
-            TriggerUpdated((temp + 1).ToString(), cell);
         }
 
         // undoes the last change on the server

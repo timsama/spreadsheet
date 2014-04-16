@@ -81,15 +81,12 @@ namespace SS
             bool passwordValid = ! passwordTextBox.Text.Contains((char)27);
 
             // declare regex matching patterns
-            String ipPattern = @"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"; // source: http://www.regular-expressions.info/examples.html
             String portPattern = @"[\d]{1,4}";
 
             // declare the actual regexes
-            Regex ipRegex = new Regex(ipPattern);
             Regex portRegex = new Regex(portPattern);
             
             // test the ip address and port to make sure they're properly formatted
-            //bool ipValid = ipRegex.IsMatch(ipTextBox.Text);
             bool ipValid = true;
             bool portValid = portRegex.IsMatch(portTextBox.Text);
 
@@ -98,7 +95,6 @@ namespace SS
             {
                 String errorMessage = "There was a problem validating input in the following fields:\n";
                 errorMessage += passwordValid ? " - Password (the escape character is not allowed)\n" : "";
-                errorMessage += ipValid ? " - IP Address (valid addresses range from 0.0.0.0 to 255.255.255.255)\n" : "";
                 errorMessage += portValid ? " - Port Number (valid ports range from 0 to 9999)\n" : "";
                 errorMessage += "\nPlease correct the fields and try again.";
 
@@ -117,6 +113,7 @@ namespace SS
             // remove event handlers to prevent multiple triggers
             msgHand.LoggedIn -= HandleLoggedIn;
             msgHand.PasswordRejected -= HandlePasswordRejected;
+            msgHand.ErrorMessage -= HandleErrorMessage;
 
             // stop the marquee animation
             StopMarquee();
@@ -148,10 +145,17 @@ namespace SS
         // handles the ErrorMessage event
         private void HandleErrorMessage(String message)
         {
-            // password was incorrect; tell user so, and reset + re-enable the password field
+            // password was incorrect; tell user so
             StopMarquee();
             MessageBox.Show(message);
+
+            // delete the current message handler; it uses a wrong password, server, or port
+            msgHand = null;
+
+            // reset + re-enable the password field
             passwordTextBox.BeginInvoke(new Action(() => { passwordTextBox.ReadOnly = false; }));
+            ipTextBox.BeginInvoke(new Action(() => { ipTextBox.ReadOnly = false; }));
+            portTextBox.BeginInvoke(new Action(() => { portTextBox.ReadOnly = false; }));
         }
 
         // logs in using the given password
@@ -163,9 +167,6 @@ namespace SS
             msgHand.LoggedIn += HandleLoggedIn;
             msgHand.PasswordRejected += HandlePasswordRejected;
 
-            // set up socket connection
-            msgHand.Connect(ipTextBox.Text, portTextBox.Text);
-
             // send the password to the server
             worker.Start();
         }
@@ -174,16 +175,6 @@ namespace SS
         private void Shutdown(object sender, EventArgs e)
         {
             this.Close();
-        }
-
-        private void ipTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            // the key input is valid if it's numbers 0-9, the period, or backspace (which for some reason has a char value)
-            bool valid = ((e.KeyChar == '0') || (e.KeyChar == '1') || (e.KeyChar == '2') || (e.KeyChar == '3') || (e.KeyChar == '4') || (e.KeyChar == '5')
-                || (e.KeyChar == '6') || (e.KeyChar == '7') || (e.KeyChar == '8') || (e.KeyChar == '9') || (e.KeyChar == '.') || (e.KeyChar == (char)8));
-
-            // if the key is invalid, act like we already handled it so it doesn't get input. Otherwise, let it continue
-            e.Handled = !valid;
         }
 
         private void portTextBox_KeyPress(object sender, KeyPressEventArgs e)

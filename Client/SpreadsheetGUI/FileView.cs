@@ -91,23 +91,23 @@ namespace SS
         // starts the progress bar marquee's animation
         private void StartOpenMarquee()
         {
-            openProgressBar.Style = ProgressBarStyle.Marquee;
+            openProgressBar.BeginInvoke(new Action(() => { openProgressBar.Style = ProgressBarStyle.Marquee; }));
         }
         // stops the progress bar marquee's animation
         private void StopOpenMarquee()
         {
-            openProgressBar.Style = ProgressBarStyle.Blocks;
+            openProgressBar.BeginInvoke(new Action(() => { openProgressBar.Style = ProgressBarStyle.Blocks; }));
         }
 
         // starts the progress bar marquee's animation
         private void StartCreateMarquee()
         {
-            createProgressBar.Style = ProgressBarStyle.Marquee;
+            createProgressBar.BeginInvoke(new Action(() => { createProgressBar.Style = ProgressBarStyle.Marquee; }));
         }
         // stops the progress bar marquee's animation
         private void StopCreateMarquee()
         {
-            createProgressBar.Style = ProgressBarStyle.Blocks;
+            createProgressBar.BeginInvoke(new Action(() => { createProgressBar.Style = ProgressBarStyle.Blocks; }));
         }
 
         // sets the files listbox to contain only the passed-in filenames
@@ -173,9 +173,27 @@ namespace SS
 
             // add the Open method to the list of event handlers for the message handler
             msgHand.Updated += Update;
+            msgHand.ErrorMessage += handleErrorMessage;
             msgHand.OpenFile(filename);
 
             return false;
+        }
+
+        // handles error messages sent from the server
+        private void handleErrorMessage(String message)
+        {
+            // keep from triggerint this multiple times
+            msgHand.ErrorMessage -= handleErrorMessage;
+
+            // show the server's error message
+            MessageBox.Show(message);
+
+            // re-enable user input
+            StopOpenMarquee();
+            filesListBox.BeginInvoke(new Action(() => { filesListBox.Enabled = true; }));
+            filenameTextBox.BeginInvoke(new Action(() => { filenameTextBox.Enabled = true; }));
+            openButton.BeginInvoke(new Action(() => { openButton.Enabled = true; }));
+            createButton.BeginInvoke(new Action(() => { createButton.Enabled = true; }));
         }
 
         // creates a spreadsheet file
