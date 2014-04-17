@@ -30,8 +30,10 @@ class MessageHandler
   static std::string Filelist(std::list<std::string> filenames); // formats a file list message for the client
   static std::string Saved(); // formats a saved message for the client
   static std::string Sync(int version, std::map<std::string, std::string> cells); // formats a sync message for the client
+  static std::string Update(int version, std::map<std::string, std::string> cells);
   static std::string Update(int version, std::string cell, std::string content); // formats an update message for the client
 
  private:
+  static std::string MessageHanlder::Cells(std::map<std::string, std::string> cells);
   static std::string getNextToken(std::string message); // gets the next token from the message, returns "" when done
 };

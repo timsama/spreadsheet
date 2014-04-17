@@ -128,9 +128,23 @@ std::string MessageHandler::Saved(){
   return "SAVED\n";
 }
 
+std::string MessageHandler::Update(int version, std::map<std::string, std::string> cells){
+  std::string retval = "UPDATE";
+  char esc = static_cast<char>(27);
+  retval += esc;
+
+  // add the version
+  std::stringstream ss;
+  ss << version;
+  retval += ss.str();
+
+  retval += Cells(cells);
+
+  return retval;
+}
+
 // formats a sync message for the client
 std::string MessageHandler::Sync(int version, std::map<std::string, std::string> cells){
-  // initialize the message
   std::string retval = "SYNC";
   char esc = static_cast<char>(27);
   retval += esc;
@@ -139,6 +153,15 @@ std::string MessageHandler::Sync(int version, std::map<std::string, std::string>
   std::stringstream ss;
   ss << version;
   retval += ss.str();
+ 
+  retval += Cells(cells);
+
+  return retval;
+}
+
+std::string MessageHanlder::Cells(std::map<std::string, std::string> cells) {
+ // initialize the message
+  char esc = static_cast<char>(27);
 
   // iterate through the map, adding each cell name and contents to the return string
   for(std::map<std::string, std::string>::iterator it = cells.begin(); it != cells.end(); it++){
