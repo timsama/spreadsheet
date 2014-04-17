@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<language>
+  <languageName>English</languageName>
+  <title>Spreadsheet</title>
+  <cell>Cell: </cell>
+  <value>Value: </value>
+  <unsavedChanges>Unsaved changes</unsavedChanges>
+  <savedChanges>Saved</savedChanges>
+  <unsavedChangesMessage>There are unsaved changes that will be lost. Proceed?</unsavedChangesMessage>
+  <fileMenu>File</fileMenu>
+  <newMenu>New</newMenu>
+  <openMenu>Open</openMenu>
+  <openInNewWindowMenu>Open in New Window</openInNewWindowMenu>
+  <saveMenu>Save</saveMenu>
+  <saveAsMenu>Save As...</saveAsMenu>
+  <closeMenu>Close</closeMenu>
+  <optionsMenu>Options</optionsMenu>
+  <languageMenu>Language</languageMenu>
+  <helpMenu>Help</helpMenu>
+  <howToUseMenu>How to use Spreadsheet</howToUseMenu>
+  <howToUseMessage>Use the arrow keys or mouse to select cells in the spreadsheet. When in the grid, use the Enter key to edit a cell's contents in the text box above, or the Delete key to delete a cell's contents. When in the cell contents box, use Enter to submit the value to the spreadsheet.</howToUseMessage>
+</language>

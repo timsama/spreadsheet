@@ -384,13 +384,19 @@ namespace SS
                 cellSet.Add(name, new Cell(name, text, Normalize, Lookup));
             }
 
-            // remove the cell's dependees
+            // cells that currently depend on this cell need to be updated
+            foreach (string cell in cellGraph.GetDependents(name))
+            {
+                returnSet.Add(cell);
+            }
+
+            // remove the cell's dependees, since a string cell can't depend on other cells
             cellGraph.ReplaceDependees(name, new List<string>());
             
             // the spreadsheet has changed
             Changed = true;
 
-            // other cells can't depend on a string-valued cell, so return set is just this cell's name
+            // return the set of cells to update
             return returnSet;
         }
 
