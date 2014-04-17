@@ -1,56 +1,62 @@
-
 #include "spreadsheet.h"
+#include "spreadsheet_db.h"
 
 namespace sss {
 
   // Constructor, takes a pointer to a
   // sqlite3 database connection
-  spreadsheet::spreadsheet(sqlite3 *db) {
-    this->db = db;
+  spreadsheet::spreadsheet(std::string name)
+    : ssdb(name)
+  {
+    this->name = name;
+    //this->ssdb = spreadsheet_db(this->name);
   }
   
   // Destructor
   spreadsheet::~spreadsheet() {
-    // Nothing to do here yet
+    // Nothing yet...
+  }
+
+  int spreadsheet::get_version() {
+    return this->ssdb.get_version();
+  }
+
+  std::map<std::string, std::string> spreadsheet::get_cells() {
+    return this->ssdb.get_cells();
   }
   
-  
-  // Returns 0 if circular dependency formed
-  //  or >0 new version number
+  // Returns
+  //  -1 if circular dependency formed
+  //   0 if error adding to model
+  //  >0 new version number
   int spreadsheet::enter(std::string cell, std::string contents) {
-    
-    std::set<std::string> contents_cells = get_cells(contents);
-
-    if(free_from_circular(cell, contents_cells)) {
-      
-      // Update contents
-      
-      return this->version;
+    if(free_from_circular(cell, contents)) {      
+      return this->ssdb.enter(cell, contents);
     } else {
-      return 0;
+      // Circular dependency
+      return -1;
     }
-    
   }
   
-  // Returns 0 if unable to undo
+  // Returns 0 if error updating database
   //  or >0 new version number
-  int spreadsheet::undo() {
-    
-  }
-  
-  std::set<std::string> spreadsheet::get_cells(std::string contents) {
-    // Parse string
-
-    // Build set
-
-    // Return set
+  int spreadsheet::undo(std::string *cell, std::string *contents) {
+    int version = this->ssdb.undo(cell, contents);
+    if(*cell != "") {
+      free_from_circular(*cell, *contents);
+    }
+    return version;
   }
 
-  bool spreadsheet::free_from_circular(std::string cell, std::set<std::string> content_cells) {
+  // Utility to manage the dependency graph
+  bool spreadsheet::free_from_circular(std::string cell, std::string contents) {
+
+    // TO-DO use the parser to actually get cells...
+    std::set<std::string> content_cells = std::set<std::string>();
 
     std::queue<std::string> cells;
     
-    // Add contents to cells
+    // Add content_cells to cells
     for (std::set<std::string>::iterator it = content_cells.begin(); it != content_cells.end(); ++it) {
 
       // Circular dependency found if a child references the parent
