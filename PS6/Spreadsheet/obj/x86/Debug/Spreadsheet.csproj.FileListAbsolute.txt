@@ -1,9 +1,9 @@
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\Spreadsheet.dll
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\Spreadsheet.pdb
-C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\Formula.dll
-C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\SpreadsheetUtilities.dll
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\Formula.xml
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\SpreadsheetUtilities.xml
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\obj\x86\Debug\Spreadsheet.csprojResolveAssemblyReference.cache
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\obj\x86\Debug\Spreadsheet.dll
 C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\obj\x86\Debug\Spreadsheet.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\Formula.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS6\Spreadsheet\bin\x86\Debug\SpreadsheetUtilities.dll
