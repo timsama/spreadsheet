@@ -1,0 +1,8 @@
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\bin\Debug\FormulaTester.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\bin\Debug\FormulaTester.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\bin\Debug\Formula.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\bin\Debug\Formula.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\bin\Debug\Formula.xml
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\obj\Debug\FormulaTester.csprojResolveAssemblyReference.cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\obj\Debug\FormulaTester.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\FormulaTester\obj\Debug\FormulaTester.pdb

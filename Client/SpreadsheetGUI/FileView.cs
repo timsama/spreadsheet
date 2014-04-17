@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SS
@@ -126,19 +127,39 @@ namespace SS
             selectedFilename = "";
         }
 
+        // to be registered with an event for when a Sync has been received. Version contains the latest version number for the file
+        // cells contains the cells to be inserted into the spreadsheet
+        private void Sync(String version, IEnumerable<SyncCell> cells)
+        {
+            // unregister so later file openings don't trigger this
+            //msgHand.Sync -= Sync;
+
+            // open the file;
+            childcount++;
+            this.BeginInvoke(new Action(() => {
+                Form handle = new MainForm(selectedFilename, version, this);
+                handle.FormClosed += Child_Closed;
+                handle.Show();
+                this.Hide();
+            }));
+        }
+
         // to be registered with an event for when an update has been received. Version contains the latest version number for the file
         // SyncCell contains the cell name and contents (should be blank for all FileView purposes)
         private void Update(String version, SyncCell cell)
         {
             // unregister so later file openings don't trigger this
-            msgHand.Updated -= Update;
+            //msgHand.Updated -= Update;
 
             // open the file
-            Form handle = new MainForm(selectedFilename, version, this);
             childcount++;
-            handle.FormClosed += Child_Closed;
-            handle.Show();
-            this.Hide();
+            this.BeginInvoke(new Action(() =>
+            {
+                Form handle = new MainForm(selectedFilename, version, this);
+                handle.FormClosed += Child_Closed;
+                handle.Show();
+                this.Hide();
+            }));
         }
 
         // handles the form closing -- specifically, turns a Close() into a Hide() if any children remain
@@ -173,6 +194,7 @@ namespace SS
 
             // add the Open method to the list of event handlers for the message handler
             msgHand.Updated += Update;
+            msgHand.Sync += Sync;
             msgHand.ErrorMessage += handleErrorMessage;
             msgHand.OpenFile(filename);
 

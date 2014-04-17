@@ -48,6 +48,9 @@ namespace SS
             msgHand.Updated += handleUpdate;
             msgHand.Sync += handleSync;
             msgHand.ErrorMessage += handleErrorMessage;
+
+            // open the file
+            msgHand.OpenFile(_filename);
         }
 
         /// <summary>
@@ -243,7 +246,7 @@ namespace SS
                 ssPanel.GetSelection(out col, out row);
 
                 // try to update the cell model
-                if (updateCellModel(row, col, contentsTextBox.Text))
+                if (updateCellModel(row, col, contentsTextBox.Text.Trim()))
                 {
                     // return focus to the spreadsheetPanel
                     ssPanel.Focus();
@@ -447,10 +450,8 @@ namespace SS
             Int32.TryParse(version, out tempOld);
 
             // check to see if spreadsheet is out of sync. If so, send the resync command and wait for the sync to happen
-            if (tempOld != tempNew - 1)
+            if (tempOld < tempNew - 1)
             {
-                MessageBox.Show(_version + ", " + version);
-
                 msgHand.Resync();
                 return;
             }
@@ -472,6 +473,9 @@ namespace SS
                     updateCellView(vcell, returnValue.ToString());
                 }
             }
+
+            // recalculate the view
+            updateAllCells();
 
             // allow the user to enter changes again
             unlockInput();
@@ -514,8 +518,8 @@ namespace SS
             foreach (SyncCell cell in cells)
                 spreadsheetModel.DirectSetCell(cell.Name, cell.Contents);
 
-            // recalculate the view
-            updateAllCells();
+            // recalculate all cells since we dummied some stuff out with zeroes
+            hardResetAllCells();
 
             // allow the user to enter changes again
             unlockInput();
@@ -553,6 +557,21 @@ namespace SS
             foreach (string cell in spreadsheetModel.GetNamesOfAllNonemptyCells())
             {
                 updateCellView(cell, spreadsheetModel.GetCellValue(cell).ToString());
+            }
+        }
+
+        /// <summary>
+        /// Clears the view and then refills it with all non-empty cells
+        /// </summary>
+        private void hardResetAllCells()
+        {
+            // clear all existing cells
+            ssPanel.Clear();
+
+            // add all new cells
+            foreach (string cell in spreadsheetModel.GetNamesOfAllNonemptyCells())
+            {
+                updateCellView(cell, spreadsheetModel.RecalculateCellValue(cell).ToString());
             }
         }
 
@@ -604,15 +623,31 @@ namespace SS
         /// <returns></returns>
         private bool updateCellModel(int row, int col, string text)
         {
-            try
+            if (text.Length > 0)
             {
-                // remove the leading '=' when trying to parse as a Formula
-                Formula formulaValue = new Formula(text.Substring(1, text.Length - 1), s => s.ToUpper(), validate);
-            }
-            catch (FormulaFormatException e)
-            {
-                MessageBox.Show(e.Message);
-                return false;
+                if (text[0] == '=')
+                {
+                    // get the name of the first invalid field--if any
+                    String invalidField = Formula.FindInvalidField(text.Substring(1, text.Length - 1), s => s.ToUpper(), validate, spreadsheetModel.Lookup);
+
+                    // check if all fields in the Formula are valid before trying to send it
+                    if (invalidField != "")
+                    {
+                        MessageBox.Show(invalidField + " contains a string value, it may not be referenced in a formula.");
+                        return false;
+                    }
+
+                    try
+                    {
+                        // remove the leading '=' when trying to parse as a Formula
+                        Formula formulaValue = new Formula(text.Substring(1, text.Length - 1), s => s.ToUpper(), validate);
+                    }
+                    catch (FormulaFormatException e)
+                    {
+                        MessageBox.Show(e.Message);
+                        return false;
+                    }
+                }
             }
 
             // if the spreadsheet is locked, do nothing

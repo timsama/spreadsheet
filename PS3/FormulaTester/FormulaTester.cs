@@ -87,16 +87,6 @@ namespace FormulaTester
         }
 
         /// <summary>
-        /// A normalize function that always throws an ExecutionEngineException for testing purposes
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static string throwsTheWrongExceptionNormalize(string s)
-        {
-            throw new ExecutionEngineException();
-        }
-
-        /// <summary>
         /// A version of normalize() that ruins variables for testing purposes
         /// </summary>
         /// <param name="s">The string to normalize</param>
@@ -215,27 +205,6 @@ namespace FormulaTester
             {
                 // if the code threw a FormulaFormatException, it handled correctly
                 Assert.AreEqual(typeof(FormulaFormatException), e.GetType(), "An exception was thrown, but it was not of type FormulaFormatException.");
-            }
-        }
-
-        [TestMethod]
-        public void NormalizeException2()
-        {
-            // testing exception handling for a normalizer that always throws ExecutionEngineException
-            string s = "x1+x2";
-
-            try
-            {
-                Formula testFormula = new Formula(s, throwsTheWrongExceptionNormalize, validate);
-
-                // if the above code failed to throw an exception, this test fails
-                Assert.Fail("An exception was thrown by the normalizer, but it was buried.");
-            }
-            catch (Exception e)
-            {
-                // if the code threw a FormulaFormatException, it's probably turning all
-                // exceptions into FormulaFormatExceptions
-                Assert.AreNotEqual(typeof(FormulaFormatException), e.GetType(), "An ExecutionEngineException was thrown by the normalizer (abnormal behavior that should not be handled), but was converted into a FormulaFormatException.");
             }
         }
 

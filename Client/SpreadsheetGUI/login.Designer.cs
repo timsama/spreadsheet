@@ -44,6 +44,7 @@
             this.passwordTextBox.Name = "passwordTextBox";
             this.passwordTextBox.Size = new System.Drawing.Size(186, 20);
             this.passwordTextBox.TabIndex = 0;
+            this.passwordTextBox.Text = "warrior";
             this.passwordTextBox.UseSystemPasswordChar = true;
             // 
             // label1
@@ -108,6 +109,7 @@
             this.ipTextBox.Name = "ipTextBox";
             this.ipTextBox.Size = new System.Drawing.Size(110, 20);
             this.ipTextBox.TabIndex = 10;
+            this.ipTextBox.Text = "lab1-7.eng.utah.edu";
             // 
             // LoginForm
             // 

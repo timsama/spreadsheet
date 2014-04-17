@@ -1,0 +1,6 @@
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\Formula\bin\Debug\Formula.XML
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\Formula\bin\Debug\Formula.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\Formula\bin\Debug\Formula.pdb
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\Formula\obj\Debug\Formula.csprojResolveAssemblyReference.cache
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\Formula\obj\Debug\Formula.dll
+C:\Users\Tim\Documents\Visual Studio 2012\Projects\Spreadsheet\PS3\Formula\obj\Debug\Formula.pdb

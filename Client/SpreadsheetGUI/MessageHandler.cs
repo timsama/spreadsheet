@@ -88,7 +88,7 @@ namespace SS
         // evaluate message to determine which event to raise, and what values to pass in it
         public void ReceiveMessage(String message, Exception e, object payload)
         {
-            System.Windows.Forms.MessageBox.Show(message);
+            //System.Windows.Forms.MessageBox.Show(message);
 
             // get the keyword (i.e. the first word of the message)
             String keyword;
@@ -152,7 +152,12 @@ namespace SS
             if (serverVersion > (clientVersion + 1))
             {
                 Resync();
+                clientVersion = serverVersion;
                 return;
+            }
+            else
+            {
+                clientVersion = serverVersion;
             }
 
             // keep track of whether name or contents are currently being specified
@@ -216,19 +221,22 @@ namespace SS
         // prepares and executes a PasswordRejected event
         public void TriggerPasswordRejected()
         {
-            PasswordRejected();
+            if (PasswordRejected != null)
+                PasswordRejected();
         }
 
         // prepares and executes a Saved event
         public void TriggerSaved()
         {
-            Saved();
+            if(Saved != null)
+                Saved();
         }
 
         // prepares and executes an ErrorMessage event
         public void TriggerErrorMessage(string message)
         {
-            ErrorMessage(message);
+            if (ErrorMessage != null)
+                ErrorMessage(message);
         }
 
         // logs into the server
@@ -299,12 +307,16 @@ namespace SS
         // sends a change to the server
         public void EnterChange(String version, SyncCell cell)
         {
+            // send the ENTER command with the version number, and the cell to change
             Send("ENTER" + (char)27 + version + (char)27 + cell.Name + (char)27 + cell.Contents + "\n");
+
+            TriggerUpdated(version + (char)27 + cell.Name + (char)27 + cell.Contents);
         }
 
         // undoes the last change on the server
         public void Undo(String version)
         {
+            // send the UNDO command with the version number
             Send("UNDO" + (char)27 + version + "\n");
         }
 

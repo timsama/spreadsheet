@@ -69,14 +69,10 @@
   <ItemGroup>
     <Reference Include="Formula, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\PS5\Formula.dll</HintPath>
+      <HintPath>..\Formula.dll</HintPath>
     </Reference>
     <Reference Include="SpreadsheetPanel">
       <HintPath>..\SpreadsheetPanel.dll</HintPath>
-    </Reference>
-    <Reference Include="SpreadsheetUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\PS5\SpreadsheetUtilities.dll</HintPath>
     </Reference>
     <Reference Include="StringSocket">
       <HintPath>.\StringSocket.dll</HintPath>

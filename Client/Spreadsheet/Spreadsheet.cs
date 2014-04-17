@@ -210,7 +210,7 @@ namespace SS
             {
                 // remove the leading '=' when trying to parse as a Formula
                 Formula formulaValue = new Formula(content.Substring(1, content.Length - 1), Normalize, IsValid);
-                SetCellContents(name, formulaValue);
+                DirectSet(name, formulaValue);
             }
             // otherwise, set the content as a string
             else
@@ -559,7 +559,7 @@ namespace SS
         /// </summary>
         /// <param name="name">Name of cell to look up</param>
         /// <returns>Value of the cell, or throws an ArgumentException</returns>
-        private double Lookup(String name)
+        public double Lookup(String name)
         {
             // temporarily store the object value of the named cell
             Object result = GetCellValue(name);
@@ -596,6 +596,43 @@ namespace SS
             // try to get an existing cell with this name
             if (cellSet.TryGetValue(name, out editCell))
             {
+                try
+                {
+                    return editCell.Value;
+                }
+                catch (ArgumentException)
+                {
+                    return "";
+                }
+            }
+            // if none exists, treat it as an empty string
+            else
+            {
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// If name is null or invalid, throws an InvalidNameException.
+        /// 
+        /// Otherwise, recalculates and returns the value (as opposed to the contents) of the named cell.  The return
+        /// value should be either a string, a double, or a SpreadsheetUtilities.FormulaError.
+        /// </summary>
+        public object RecalculateCellValue(String name)
+        {
+            Cell editCell;
+
+            // normalize the name
+            name = Normalize(name);
+
+            // check name for null-string and invalid format
+            checkName(name);
+
+            // try to get an existing cell with this name
+            if (cellSet.TryGetValue(name, out editCell))
+            {
+                editCell.NeedToRecalculate = true;
+                editCell.CalculateValue();
                 return editCell.Value;
             }
             // if none exists, treat it as an empty string
@@ -730,8 +767,10 @@ namespace SS
             Name = Normalize(_name);
             Contents = _Contents;
             LookupDelegate = Lookup;
-            NeedToRecalculate = true;
-            CalculateValue();
+            Value = (double)0;
+            NeedToRecalculate = false;
+            //NeedToRecalculate = true;
+            //CalculateValue();
         }
 
         /// <summary>

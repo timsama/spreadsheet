@@ -33,6 +33,16 @@
             maps every string to true.  
             </summary>
         </member>
+        <member name="M:SpreadsheetUtilities.Formula.FindInvalidField(System.String,System.Func{System.String,System.String},System.Func{System.String,System.Boolean},System.Func{System.String,System.Double})">
+            <summary>
+            Checks if all fields referenced by a Formula are not Strings, FormulaErrors, or unknown types
+            </summary>
+            <param name="formula"></param>
+            <param name="normalize"></param>
+            <param name="isValid"></param>
+            <param name="Lookup"></param>
+            <returns>Returns a String containing the name of the first field that fails validation (contain a String value, etc.)</returns>
+        </member>
         <member name="M:SpreadsheetUtilities.Formula.#ctor(System.String,System.Func{System.String,System.String},System.Func{System.String,System.Boolean})">
             <summary>
             Creates a Formula from a string that consists of an infix expression written as

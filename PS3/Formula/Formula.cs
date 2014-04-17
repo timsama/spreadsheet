@@ -52,6 +52,95 @@ namespace SpreadsheetUtilities
         }
 
         /// <summary>
+        /// Checks if all fields referenced by a Formula are not Strings, FormulaErrors, or unknown types
+        /// </summary>
+        /// <param name="formula"></param>
+        /// <param name="normalize"></param>
+        /// <param name="isValid"></param>
+        /// <param name="Lookup"></param>
+        /// <returns>Returns a String containing the name of the first field that fails validation (contain a String value, etc.)</returns>
+        public static String FindInvalidField(String formula, Func<string, string> normalize, Func<string, bool> isValid, Func<string, double> Lookup)
+        {
+            // Patterns for string tokens
+            string varPattern = @"[a-zA-Z_](?: [a-zA-Z_]|\d)*";
+
+            // holds the normalized version of each token
+            String normalizedToken;
+
+            // loop over each token
+            foreach (string token in GetTokens(formula))
+            {
+                // proceed with testing if token is a variable
+                if (Regex.IsMatch(token, varPattern, RegexOptions.Singleline))
+                {
+                    try
+                    {
+                        // normalize the token
+                        normalizedToken = normalize(token);
+                    }
+                    catch (Exception e)
+                    {
+                        if (typeof(ArgumentException) == e.GetType())
+                        {
+                            // normalizer threw an exception, so field is invalid
+                            return token;
+                        }
+                        else
+                        {
+                            // an unknown exception occurred; rethrow it
+                            throw e;
+                        }
+                    }
+
+                    // check to see if the normalized token is legal
+                    if (!isLegalVariableName(normalizedToken))
+                    {
+                        // variable name is not legal, so a field is invalid
+                        return normalizedToken;
+                    }
+
+                    try
+                    {
+
+                        // check the normalized token for validity
+                        if (!isValid(normalizedToken))
+                        {
+                            // the validator rejected this token, so a field is invalid
+                            return normalizedToken;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        if (typeof(ArgumentException) == e.GetType())
+                        {
+                            // there was an ArgumentException, so a field is invalid
+                            return normalizedToken;
+                        }
+                        else
+                        {
+                            // an unknown exception occurred; rethrow it
+                            throw e;
+                        }
+                    }
+
+                    // check token for valid return type (an exception will be thrown in the case of a String, FormulaError, or unknown type)
+                    try
+                    {
+                        Lookup(normalizedToken);
+                    }
+                    catch (Exception)
+                    {
+                        // either String or Unknown format was detected, field is invalid 
+                        return normalizedToken;
+                    }
+                }
+            }
+
+            // if we made it here, all fields are valid
+            return "";
+        }
+
+        /// <summary>
         /// Creates a Formula from a string that consists of an infix expression written as
         /// described in the class comment.  If the expression is syntactically incorrect,
         /// throws a FormulaFormatException with an explanatory Message.
