@@ -1,5 +1,14 @@
-server: 		server.cc dependency_graph.o spreadsheet.o spreadsheet_db.o
-			g++ -o server server.cc dependency_graph.o spreadsheet.o spreadsheet_db.o
+server:	server.cc run_server.cc Server.cc Server.h SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o
+	g++ -o server run_server.cc Server.cc SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o -lsqlite3
+
+Serv_Sock.cc:		Serv_Sock.cc Serv_Sock.h
+			g++ -c Serv_Sock.cc
+
+MessageHandler.o:	MessageHandler.cc MessageHandler.h
+			g++ -c MessageHandler.cc
+
+SS_Server.o:		SS_Server.cc SS_Server.h
+			g++ -c SS_Server.cc
 
 sqltest:		spreadsheet_db_test.cc spreadsheet_db.o
 			g++ -o sqltest spreadsheet_db_test.cc spreadsheet_db.o -lsqlite3

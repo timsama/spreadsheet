@@ -1,7 +1,7 @@
 /*
  *MessageHandler.h
  */
-
+#include "Serv_Sock.h"
 #include <string>
 #include <map>
 #include <list>
@@ -11,7 +11,7 @@ class MessageHandler
 {
  public:
   // constructor
-  MessageHandler(std::string message, int s);
+  MessageHandler(std::string message, Serv_Sock* s);
 
   // when instantiated (received messages), MessageHandler is treated like a struct--all data members are public
 
@@ -21,7 +21,7 @@ class MessageHandler
   std::string version; // contains the version number (for ENTER, UNDO, and SAVE messages)
   std::string cell; // contains the cell's name (for ENTER messages), or an empty string
   std::string content; // contains the cell's contents (for ENTER messages), or an empty string
-  int socket; // contains the socket number associated with the message
+  Serv_Sock* socket; // contains the socket number associated with the message
 
   // when using static methods (sending messages), just return a correctly-formatted string
 
@@ -30,8 +30,10 @@ class MessageHandler
   static std::string Filelist(std::list<std::string> filenames); // formats a file list message for the client
   static std::string Saved(); // formats a saved message for the client
   static std::string Sync(int version, std::map<std::string, std::string> cells); // formats a sync message for the client
+  static std::string Update(int version, std::map<std::string, std::string> cells);
   static std::string Update(int version, std::string cell, std::string content); // formats an update message for the client
 
  private:
+  static std::string Cells(std::map<std::string, std::string> cells);
   static std::string getNextToken(std::string message); // gets the next token from the message, returns "" when done
 };
