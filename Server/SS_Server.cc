@@ -4,44 +4,40 @@
 
 #include "SS_Server.h"
 
-SS_Server::SS_Server()
+SS_Server::SS_Server(std::string fn)
+  : ss(fn)
 {
- 
-}
-
-SS_Server::SS_Server(std::string fn, Serv_Sock sock)
-{
-  serv_sock = sock;
-  socket = sock.id;
 }
 
 SS_Server::~SS_Server()
 {
 }
 
+void SS_Server::add_sock(Serv_Sock* sock)
+{
+  // add the given socket to the set
+  sockets.insert(sock);
+}
+
 // Messages are passed from the Server to the SS_Server using this function
 // The socket loop listens for messages from a specific socket and adds them
 // them to the messages queue if they are an enter or undo command
 // ELSE it immediately broadcasts the response to the given socket 
-void SS_Server::socket_loop(Serv_Sock sock)
+void SS_Server::socket_loop(Serv_Sock* sock)
 {
-  int socket = sock.id;
   std::string message;
   std::string send_message;
-
-  // add the given socket to the set
-  sockets.insert(&serv_sock);
 
   while(1)
     {
       // wait for a message from the sock
       // receive
-      message = sock.serv_recv();
-      printf("%d: ", socket); 
+      message = sock->serv_recv();
+      printf("%d: ", sock->id); 
       std::cout << "Here is the message: " << message << std::endl;
       
       // create a message handler for the received message
-      MessageHandler mh(message, socket);
+      MessageHandler mh(message, sock);
     
       // if the message is an undo or enter type let the server_loop handle the return mess
       if ((mh.key.compare("UNDO")==0)||(mh.key.compare("ENTER")==0))
@@ -53,7 +49,7 @@ void SS_Server::socket_loop(Serv_Sock sock)
       else
 	{
 	  // use message handler to format a message and broadcast
-	  if(mh.key.compare("SYNC")==0)
+	  if(mh.key.compare("RESYNC")==0)
 	    {
 	      //send_message = mh.Sync(mh.version,...);
 	    }
@@ -68,7 +64,7 @@ void SS_Server::socket_loop(Serv_Sock sock)
 	      // invalid message
 	    }
 	  // broadcast the return message to the provided sock
-	  broadcast(send_message, socket);
+	  broadcast(send_message, sock);
 	}
       
       // loop
@@ -82,9 +78,7 @@ void SS_Server::socket_loop(Serv_Sock sock)
 // It broadcasts response messages to all sockets in the sockets set
 void SS_Server::server_loop()
 {
-  int n;
-  std::string return_message;
-
+ 
   // while the sockets set is not empty  
   while(!sockets.empty())
     {
@@ -96,6 +90,8 @@ void SS_Server::server_loop()
 	  messages.pop();
 	}
       // loop
+      // sleep for 10 ms
+      usleep(10000);
     }// end of while
 
 }  
@@ -112,9 +108,9 @@ void SS_Server::broadcast(std::string message)
 }
 
 // send a message to a specific socket 
-void SS_Server::broadcast(std::string message, Serv_Sock sock)
+void SS_Server::broadcast(std::string message, Serv_Sock* sock)
 {
-  sock.serv_send(message);
+  sock->serv_send(message);
 }
 
 

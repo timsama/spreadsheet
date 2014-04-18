@@ -5,7 +5,7 @@
 #include "MessageHandler.h"
 
 // constructor
-MessageHandler::MessageHandler(std::string message, int s){
+MessageHandler::MessageHandler(std::string message, Serv_Sock* s){
   // save the socket number
   socket = s;
 
@@ -159,8 +159,9 @@ std::string MessageHandler::Sync(int version, std::map<std::string, std::string>
   return retval;
 }
 
-std::string MessageHanlder::Cells(std::map<std::string, std::string> cells) {
+std::string MessageHandler::Cells(std::map<std::string, std::string> cells) {
  // initialize the message
+  std::string retval = "";
   char esc = static_cast<char>(27);
 
   // iterate through the map, adding each cell name and contents to the return string

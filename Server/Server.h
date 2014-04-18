@@ -32,18 +32,18 @@
 
 class Server{
  public:
-  Server(Serv_Sock sock);
+  Server(Serv_Sock* sock);
   ~Server();
 
   // call all of the necessary functions to handle the client and pass it to the SS_Server
   void handle_client();
 
   // map to store spreadsheets currently being editted 
-  std::map<std::string, SS_Server*> open_spreads;
+  std::map<std::string, SS_Server> open_spreads;
 
  private:
   int socket;
-  Serv_Sock serv_sock;
+  Serv_Sock* serv_sock;
   
   char buffer[1024];
   
@@ -54,6 +54,6 @@ class Server{
 
   void wait_authorize();
   std::string wait_open_create();
-  void check_open_spreads(std::string filename);
+  void open_spreadsheet(std::string filename);
 };
 #endif

@@ -107,7 +107,8 @@ int main(void)
 
 
     // pass new_fd to the Server_Sock wrapper class
-    Serv_Sock serv_sock(new_fd);
+    Serv_Sock* serv_sock;
+    serv_sock = new Serv_Sock(new_fd);
 
     // start server on new socket
     Server serv(serv_sock);
