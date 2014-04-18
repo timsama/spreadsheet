@@ -344,7 +344,7 @@ namespace SS
             Send("ENTER" + (char)27 + version + (char)27 + cell.Name + (char)27 + cell.Contents + "\n");
 
             // DEBUG: REMOVE BEFORE RELEASE
-            TriggerUpdated(version + (char)27 + cell.Name + (char)27 + cell.Contents);
+            //TriggerUpdated(version + (char)27 + cell.Name + (char)27 + cell.Contents);
         }
 
         // undoes the last change on the server
