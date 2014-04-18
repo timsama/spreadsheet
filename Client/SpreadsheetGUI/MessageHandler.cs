@@ -31,6 +31,7 @@ namespace SS
         private StringSocket outSocket;
         public readonly String IpAddress, PortNumber, Password;
         private int clientVersion;
+        private SyncCell CellToSend;
 
         // register for this event to be notified when a login has succeeded. List<String> contains a list of filenames as individual strings
         public event Action<List<String>> LoggedIn;
@@ -125,8 +126,21 @@ namespace SS
                     TriggerSaved();
                     break;
                 case "SYNC":
-                    TriggerUpdated(message); // originally was its own method, but is literally never meaningfully different than a multicell update, so the two were merged
+                    TriggerSync(message);
                     break;
+            }
+        }
+
+        // prepares and executes a Sync event by calling TriggerUpdated after some initial processing
+        public void TriggerSync(String message)
+        {
+            // run the Sync as an update
+            TriggerUpdated(message);
+
+            // if there is still a cell to send (TriggerUpdated will nullify CellToSend if the sync changed that cell), then resend
+            if (CellToSend != null)
+            {
+                EnterChange(clientVersion.ToString(), CellToSend);
             }
         }
 
@@ -180,6 +194,20 @@ namespace SS
                 IsName = !IsName;
             }
 
+            // if this update/sync modified a cell that we tried to modify, either our change worked (and there's no point in resending) or the pre-our-change version
+            // of that cell changed, and the change should not go through
+            if (CellToSend != null)
+            {
+                foreach (SyncCell cell in cells)
+                {
+                    if (cell.Name == CellToSend.Name)
+                    {
+                        CellToSend = null;
+                        break;
+                    }
+                }
+            }
+
             // call updated for single cell updates; multi cell updates only happen upon file opening or resyncs, so they can be handled like a sync
             if (cells.Count == 1)
             {
@@ -189,6 +217,8 @@ namespace SS
             {
                 Sync(version, cells);
             }
+
+            return;
         }
 
         // prepares and executes a LoggedIn event
@@ -307,9 +337,13 @@ namespace SS
         // sends a change to the server
         public void EnterChange(String version, SyncCell cell)
         {
+            // save the cell to send out in case it needs to be resent
+            CellToSend = cell;
+
             // send the ENTER command with the version number, and the cell to change
             Send("ENTER" + (char)27 + version + (char)27 + cell.Name + (char)27 + cell.Contents + "\n");
 
+            // DEBUG: REMOVE BEFORE RELEASE
             TriggerUpdated(version + (char)27 + cell.Name + (char)27 + cell.Contents);
         }
 

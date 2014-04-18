@@ -148,11 +148,8 @@ namespace SS
             // Check for delete key
             else if (e.KeyCode == Keys.Delete)
             {
-                // clear the contentsTextBox
-                // contentsTextBox.Text = "";
-
                 // try to update the cell model, clearing this cell
-                if (updateCellModel(row, col, ""))
+                if ((contentsTextBox.Text != "") && (updateCellModel(row, col, "")))
                 {
                     // update the status labels
                     displaySelection(ssPanel);
@@ -245,18 +242,26 @@ namespace SS
                 int col, row;
                 ssPanel.GetSelection(out col, out row);
 
-                // try to update the cell model
-                if (updateCellModel(row, col, contentsTextBox.Text.Trim()))
+                // try to update the cell model if new contents are different than current contents
+                if (contentsTextBox.Text.Trim().ToUpper().Replace(" ", String.Empty) != getCellModelContents("" + (char)('A' + col) + (row + 1)))
+                {
+                    if (updateCellModel(row, col, contentsTextBox.Text.Trim()))
+                    {
+                        // return focus to the spreadsheetPanel
+                        ssPanel.Focus();
+
+                        // update the status labels
+                        displaySelection(ssPanel);
+                    }
+
+                    // we handled the character input
+                    e.Handled = true;
+                }
+                else
                 {
                     // return focus to the spreadsheetPanel
                     ssPanel.Focus();
-
-                    // update the status labels
-                    displaySelection(ssPanel);
                 }
-
-                // we handled the character input
-                e.Handled = true;
             }
         }
 
@@ -623,30 +628,40 @@ namespace SS
         /// <returns></returns>
         private bool updateCellModel(int row, int col, string text)
         {
-            if (text.Length > 0)
+            // send the new cell contents to the server
+            return updateCellModel(new SyncCell("" + (char)('A' + col) + (row + 1), text));
+        }
+
+        /// <summary>
+        /// Updates the data in a cell in the model
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="col"></param>
+        /// <param name="text">The data to put in the cell</param>
+        /// <returns></returns>
+        private bool updateCellModel(SyncCell cell)
+        {
+            if ((cell.Contents.Length > 0) && (cell.Contents[0] == '='))
             {
-                if (text[0] == '=')
+                // get the name of the first invalid field--if any
+                String invalidField = Formula.FindInvalidField(cell.Contents.Substring(1, cell.Contents.Length - 1), s => s.ToUpper(), validate, spreadsheetModel.Lookup);
+
+                // check if all fields in the Formula are valid before trying to send it
+                if (invalidField != "")
                 {
-                    // get the name of the first invalid field--if any
-                    String invalidField = Formula.FindInvalidField(text.Substring(1, text.Length - 1), s => s.ToUpper(), validate, spreadsheetModel.Lookup);
+                    MessageBox.Show(invalidField + " contains a string value, it may not be referenced in a formula.");
+                    return false;
+                }
 
-                    // check if all fields in the Formula are valid before trying to send it
-                    if (invalidField != "")
-                    {
-                        MessageBox.Show(invalidField + " contains a string value, it may not be referenced in a formula.");
-                        return false;
-                    }
-
-                    try
-                    {
-                        // remove the leading '=' when trying to parse as a Formula
-                        Formula formulaValue = new Formula(text.Substring(1, text.Length - 1), s => s.ToUpper(), validate);
-                    }
-                    catch (FormulaFormatException e)
-                    {
-                        MessageBox.Show(e.Message);
-                        return false;
-                    }
+                try
+                {
+                    // remove the leading '=' when trying to parse as a Formula
+                    Formula formulaValue = new Formula(cell.Contents.Substring(1, cell.Contents.Length - 1), s => s.ToUpper(), validate);
+                }
+                catch (FormulaFormatException e)
+                {
+                    MessageBox.Show(e.Message);
+                    return false;
                 }
             }
 
@@ -658,7 +673,7 @@ namespace SS
             lockInput();
 
             // send the new cell contents to the server
-            msgHand.EnterChange(version, new SyncCell("" + (char)('A' + col) + (row + 1), text));
+            msgHand.EnterChange(version, cell);
 
             return true;
         }
@@ -671,7 +686,12 @@ namespace SS
         /// <returns></returns>
         private string getCellModelContents(int row, int col)
         {
-            Object contents = spreadsheetModel.GetCellContents("" + (char)('A' + col) + (row + 1));
+            return getCellModelContents("" + (char)('A' + col) + (row + 1));
+        }
+
+        private string getCellModelContents(String name)
+        {
+            Object contents = spreadsheetModel.GetCellContents(name);
 
             // if the contents are a formula, they need a leading '='
             if (contents.GetType() == typeof(Formula))
