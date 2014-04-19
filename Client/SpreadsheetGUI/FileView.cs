@@ -155,9 +155,10 @@ namespace SS
             childcount++;
             this.BeginInvoke(new Action(() =>
             {
-                Form handle = new MainForm(selectedFilename, version, this);
+                MainForm handle = new MainForm(selectedFilename, version, this);
                 handle.FormClosed += Child_Closed;
                 handle.Show();
+                handle.handleUpdate(version, cell);
                 this.Hide();
             }));
         }

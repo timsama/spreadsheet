@@ -98,7 +98,9 @@ namespace SS
         /// <param name="e"></param>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            e.Cancel = stopForUnsavedChanges();
+            bool cancel = stopForUnsavedChanges();
+            e.Cancel = cancel;
+            msgHand.Disconnect();
             base.OnFormClosing(e);
         }
 
@@ -220,12 +222,12 @@ namespace SS
         // starts the progress bar marquee's animation
         private void StartMarquee()
         {
-            statusProgressBar.Style = ProgressBarStyle.Marquee;
+            statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Marquee; }));
         }
         // stops the progress bar marquee's animation
         private void StopMarquee()
         {
-            statusProgressBar.Style = ProgressBarStyle.Blocks;
+            statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Blocks; }));
         }
 
         /// <summary>
@@ -248,7 +250,7 @@ namespace SS
                     if (updateCellModel(row, col, contentsTextBox.Text.Trim()))
                     {
                         // return focus to the spreadsheetPanel
-                        ssPanel.Focus();
+                        ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
 
                         // update the status labels
                         displaySelection(ssPanel);
@@ -260,7 +262,7 @@ namespace SS
                 else
                 {
                     // return focus to the spreadsheetPanel
-                    ssPanel.Focus();
+                    ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
                 }
             }
         }
@@ -317,9 +319,6 @@ namespace SS
         /// <param name="e"></param>
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // tell the server we're closing the file
-            msgHand.Disconnect();
-
             // close this spreadsheet
             this.Close();
         }
@@ -404,7 +403,7 @@ namespace SS
         {
             // move focus to contentsTextBox is Enter is pressed
             if (e.KeyCode == Keys.Enter)
-                contentsTextBox.Focus();
+                contentsTextBox.BeginInvoke(new Action(() => { contentsTextBox.Focus(); }));
 
             displaySelection(ssPanel);
         }
@@ -446,7 +445,7 @@ namespace SS
         /// <summary>
         /// Handles an Update event
         /// </summary>
-        private void handleUpdate(String _version, SyncCell cell)
+        public void handleUpdate(String _version, SyncCell cell)
         {
             int tempNew = 0;
             int tempOld = 0;
@@ -478,6 +477,9 @@ namespace SS
                     updateCellView(vcell, returnValue.ToString());
                 }
             }
+            
+            // put the cursor back in the spreadsheet
+            ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
 
             // recalculate the view
             updateAllCells();
@@ -491,8 +493,8 @@ namespace SS
             lock (spreadsheetModel)
             {
                 locked = true;
-                ssPanel.Enabled = false;
-                contentsTextBox.ReadOnly = true;
+                ssPanel.BeginInvoke(new Action(() => { ssPanel.Enabled = false; }));
+                contentsTextBox.BeginInvoke(new Action(() => { contentsTextBox.ReadOnly = true; }));
                 StartMarquee();
             }
         }
@@ -502,8 +504,8 @@ namespace SS
             lock (spreadsheetModel)
             {
                 locked = false;
-                ssPanel.Enabled = true;
-                contentsTextBox.ReadOnly = false;
+                ssPanel.BeginInvoke(new Action(() => { ssPanel.Enabled = true; }));
+                contentsTextBox.BeginInvoke(new Action(() => { contentsTextBox.ReadOnly = false; }));
                 StopMarquee();
             }
         }
@@ -673,7 +675,7 @@ namespace SS
             lockInput();
 
             // send the new cell contents to the server
-            msgHand.EnterChange(version, cell);
+            msgHand.EnterChange(cell);
 
             return true;
         }

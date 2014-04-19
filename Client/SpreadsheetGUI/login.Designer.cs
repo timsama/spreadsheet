@@ -109,7 +109,7 @@
             this.ipTextBox.Name = "ipTextBox";
             this.ipTextBox.Size = new System.Drawing.Size(110, 20);
             this.ipTextBox.TabIndex = 10;
-            this.ipTextBox.Text = "lab1-7.eng.utah.edu";
+            this.ipTextBox.Text = "lab1-24.eng.utah.edu";
             // 
             // LoginForm
             // 

@@ -28,7 +28,7 @@ namespace BC
 
         private void Play_button_Click(object sender, EventArgs e)
         {
-            model.Connect("155.98.111.73", 2500, player_textbox.Text);
+            model.Connect("lab1-22.eng.utah.edu", 2500, player_textbox.Text);
             player_textbox.ReadOnly = true;
             Play_button.Visible = false;
             
@@ -36,8 +36,17 @@ namespace BC
 
         private void send_button_Click(object sender, EventArgs e)
         {
-            model.SendMessage(send_textbox.Text);
+            String sendtext = send_textbox.Text;
+
+            sendtext = sendtext.Replace('@', (char)27);
+
+            model.SendMessage(sendtext);
             send_textbox.Text = "";
+        }
+
+        private void send_textbox_TextChanged(object sender, EventArgs e)
+        {
+
         }
 
     }
