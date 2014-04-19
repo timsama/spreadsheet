@@ -64,7 +64,7 @@ std::string MessageHandler::getNextToken(std::string message){
 
   // loop until the end of the token is reached
   while((start + end) < message.length()){
-    while((message[start + end] != esc) && ((start + end) < message.length())){
+    while((message[start + end] != esc) && (message[start + end] != '\n') && ((start + end) < message.length())){
       end++;
     }
 
