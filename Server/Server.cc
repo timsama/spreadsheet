@@ -206,7 +206,7 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
 		found = true;
 	    }
 	  
-	  if(((found == true)&&open)||((found==false)&&create))
+	  if(found && open) || (!found && create))
 	    {
 	      // no error in message send spreadsheet
 	      printf("The message was valid.\n ");
@@ -241,7 +241,11 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
 	  serv_sock->serv_send(send_message);
 	  printf("%d: Not an open command.  An error message was sent.\n",serv_sock->id);
 	}
-    }// end of while waiting for the open command
+    } // end of while waiting for the open command
+
+
+// Sending the initial UPDATE has all been moved to SS_Server
+// It is still here for testing
    
    // if it is an open command send the update right away
    //if (open)
