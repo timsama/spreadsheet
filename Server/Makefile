@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 server:	server.cc run_server.cc Server.cc Server.h SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o parsecells.o
 	g++ -o server run_server.cc Server.cc SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o parsecells.o -lsqlite3
+=======
+server: run_server.cc Server.cc Server.h SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o
+	g++ -o server run_server.cc Server.cc SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o -lsqlite3
+>>>>>>> f9907eb89e7d9d9cadcf9082113fd916f916d45d
 
-Serv_Sock.cc:		Serv_Sock.cc Serv_Sock.h
+Serv_Sock.o:		Serv_Sock.cc Serv_Sock.h
 			g++ -c Serv_Sock.cc
 
 MessageHandler.o:	MessageHandler.cc MessageHandler.h

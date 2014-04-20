@@ -31,7 +31,6 @@ namespace sss {
   //   0 if error adding to model
   //  >0 new version number
   int spreadsheet::enter(std::string cell, std::string contents) {
-    std::cout << cell << " = " << contents << std::endl;
     if(free_from_circular(cell, contents)) {      
       return this->ssdb.enter(cell, contents);
     } else {
@@ -59,22 +58,16 @@ namespace sss {
     // Use the parser to actually get cells
     std::set<std::string> content_cells = parsecells::parse(contents);
 
-    std::cout << "Found " << content_cells.size() << " cells in the formula." << std::endl;
-
     std::queue<std::string> cells;
     
-    std::cout << "Checking cells against " << cell << std::endl;
-
     // Add content_cells to cells
     for (std::set<std::string>::iterator it = content_cells.begin(); it != content_cells.end(); ++it) {
 
       // Circular dependency found if a child references the parent
       if(*it == cell) {
-	std::cout << " !!! Found circular child " << *it << std::endl;
 	return false;
       } else {
 	cells.push(*it);
-	std::cout << " Adding child " << *it << std::endl;
       }
     }
     
@@ -84,17 +77,14 @@ namespace sss {
       cells.pop();
       
       // Add current_cell's dependencies to the queue
-      std::cout << " Recursively checking " << current_cell << std::endl;
       std::set<std::string> deps = this->dependencies.get_dependents(current_cell);
       for (std::set<std::string>::iterator it = deps.begin(); it != deps.end(); ++it) {
 
 	// Circular dependency found if a child references the parent
 	if(*it == cell) {
-	  std::cout << " !!! Found circular child " << *it << std::endl;
 	  return false;
 	} else {
 	  cells.push(*it);
-	  std::cout << " Adding child " << *it << std::endl;
 	}
       }
     }

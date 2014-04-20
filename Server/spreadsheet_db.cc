@@ -1,5 +1,6 @@
 #include "spreadsheet_db.h"
 #include <sstream>
+#include <iostream>
 
 namespace sss {
 
@@ -184,9 +185,9 @@ namespace sss {
    
     std::string cell, contents;
     std::map<std::string, std::string> cells = std::map<std::string, std::string>();
- 
+    
     // Query for active cells
-    sql = "SELECT cell, contents FROM data WHERE active = 1 AND contents != "";";
+    sql = "SELECT cell, contents FROM transactions WHERE active = 1 AND contents != '';";
     result = sqlite3_prepare_v2(this->db, sql.c_str(), strlen(sql.c_str()), &statement, NULL);
     if(result == SQLITE_OK) {
       // Loop

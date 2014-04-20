@@ -24,7 +24,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
-
+#include <list>
+#include "dirent.h"
 #define PORT "2500"  // the port users will be connecting to
 
 #define BACKLOG 10     // how many pending connections queue will hold
@@ -44,14 +45,8 @@ class Server{
  private:
   int socket;
   Serv_Sock* serv_sock;
+  std::list<std::string> file_return();
   
-  char buffer[1024];
-  
-  std::string send_message;
-  std::string delimiter;
-  std::string endline;
-  std::vector<std::string> filelist;
-
   void wait_authorize();
   std::string wait_open_create();
   void open_spreadsheet(std::string filename);

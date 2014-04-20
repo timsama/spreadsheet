@@ -19,7 +19,10 @@ void Serv_Sock::serv_send(std::string message)
   e = message.c_str();
   n = send(sock,e,message.length(),0);
   if (n < 0) 
-    perror("ERROR writing to socket");  
+    {
+      //perror("ERROR writing to socket.  The client has disconnected.\n");  
+      close(sock);
+    }
 }
 
 std::string Serv_Sock::serv_recv()
@@ -35,14 +38,13 @@ std::string Serv_Sock::serv_recv()
   // check if the client has disconnected
   if (n==0)
     {
-      printf("Closed in while loop in wait_open_create\n");
+      printf("The client socket has disconnected inside serv_sock\n");
       close(sock);
-      //break;
     }
   if (n < 0)
     {
       perror("ERROR reading from socket");
-      // break;
+      close(sock);
     }
   
   std::string return_string(buffer);

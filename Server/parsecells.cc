@@ -42,7 +42,6 @@ std::set<std::string> parsecells::parse(std::string content) {
 	  i++;
 	} 
 	cells.insert(temp);
-	std::cout << " added " << temp << std::endl;
 	temp = "";
       }
     }

@@ -38,6 +38,7 @@ class SS_Server{
 
   void broadcast(std::string message);
   void broadcast(std::string message, Serv_Sock* sock);
+  void disconnect(Serv_Sock* sock);
 
   sss::spreadsheet ss;
   // queue of MessageHandlers

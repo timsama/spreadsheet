@@ -102,7 +102,7 @@ int main(void)
     new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
     if (new_fd == -1) {
       perror("ACCEPT");
-      continue;
+      //continue;
    }
 
 
@@ -135,6 +135,7 @@ int main(void)
 	  close(sockfd);
 
 	  // process the message from the client
+	  printf("Running server handle_client()\n");
 	  serv.handle_client();
 	  exit(0);
         }
@@ -143,7 +144,7 @@ int main(void)
 	  // parent thread
         }
       
-  } /*end of while*/
+      } /*end of while*/
 
   return 0;
 }
