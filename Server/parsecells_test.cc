@@ -7,7 +7,7 @@ int main() {
 
   std::set<std::string> cells = parsecells::parse("=A2+B32+c4");
 
-  std::cout << "THe set has " << cells.size() << " items." << std::endl; 
+  std::cout << "The set has " << cells.size() << " items." << std::endl; 
 
 
 }
