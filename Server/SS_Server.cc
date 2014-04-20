@@ -32,37 +32,40 @@ void SS_Server::socket_loop(Serv_Sock* sock)
   std::string send_message;
   bool run = true;
   int count = 0;
-  while(run)
-  {
-      // wait for a message from the sock
-      // receive
-      message = sock->serv_recv();
-      if(message.compare("")==0)
-	run = false;
 
-      std::cout << "Here is the message inside of socket_loop: " << message << std::endl;
-      
-      // create a message handler for the received message
-      MessageHandler mh(message, sock);
+  // Send the inital state of the spreadsheet to the newly joined socket
+  SS_Server::broadcast(MessageHandler::Update(ss.get_version(), ss.get_cells()), sock);
+
+  while(run) {
+    // wait for a message from the sock
+    // receive
+    message = sock->serv_recv();
+    if(message.compare("")==0) {
+      run = false;
+      continue; // Add this to bypass all the following on disconnect
+    }
     
-      // if the message is an undo or enter type let the server_loop handle the return mess
-      if ((mh.key.compare("UNDO")==0)||(mh.key.compare("ENTER")==0))
-	{
-	  std::cout << "Pushing a " << mh.key << " command on to the queue.\n";
-	  // lock the messages queue and the message handler to it
-	  messages.push(mh);
-	  printf("The queue is size %d for the SS_Server %d inside of socket loop.\n",messages.size(),this);
-	}
-      // else determine the return message based on it
-      else
-	{
-	  // use message handler to format a message and broadcast
-	  if(mh.key.compare("RESYNC")==0)
-	    {
-	      std::map<std::string,std::string> fakemap;
-	      fakemap.insert(std::pair<std::string,std::string>("A2","goodbye"));
-	      send_message = MessageHandler::Sync(2,fakemap);
-	    }
+    std::cout << "Here is the message inside of socket_loop: " << message << std::endl;
+    
+    // create a message handler for the received message
+    MessageHandler mh(message, sock);
+    
+    // if the message is an undo or enter type let the server_loop handle the return
+    if ((mh.key.compare("UNDO")==0)||(mh.key.compare("ENTER")==0))
+      {
+	std::cout << "Pushing a " << mh.key << " command on to the queue.\n";
+	// lock the messages queue and the message handler to it
+	messages.push(mh);
+	printf("The queue is size %d for the SS_Server %d inside of socket loop.\n",messages.size(),this);
+      }
+    // else determine the return message based on it
+    else
+      {
+	// use message handler to format a message and broadcast
+	if(mh.key.compare("RESYNC")==0)
+	  {
+	    send_message = MessageHandler::Sync(ss.get_version(), ss.get_cells());
+	  }
 	  else if (mh.key.compare("DISCONNECT")==0)
 	    {
 	      printf("Received DISCONNECT.\n");
@@ -83,11 +86,11 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 	    {
 	      // invalid message
 	    }
-	  // broadcast the return message to the provided sock
-	  broadcast(send_message, sock);
-	}
-      // loop
-      }// end of while
+	// broadcast the return message to the provided sock
+	broadcast(send_message, sock);
+      }
+    // loop
+  }// end of while
 }
 
 // remove the given socket from the sockets set and close it
@@ -121,8 +124,43 @@ void SS_Server::server_loop()
 	{
 	  // pop the messge off of the queue
 	  printf("Inside server_loop.  The queue is not empty.\n");
-	  MessageHandler new_mh = messages.front();
+	  MessageHandler message = messages.front();
 	  messages.pop();
+
+	  if(message.version != ss.get_version()) {
+	    // CLient -> SYNC with latest version
+	    SS_Server::broadcast(MessageHandler::Sync(ss.get_version(), ss.get_cells()), message.socket);
+	    continue;
+	  } 
+
+	  int newversion = 0;
+	  if(message.key == "ENTER") {
+	    newversion = ss.enter(message.cell, message.content);
+	    cell = message.cell;
+	    contents = message.contents;
+	  }
+
+	  if(message.key == "UNDO") {
+	    std::string cell = "";
+	    std::string contents = "";
+	    newversion ss.undo(&cell, $contents);
+	  }
+
+	  if(newversion == -1) {
+	    // Client -> Circular dependency
+	    SS_Server::broadcast(MessageHandler::Error("Setting " + cell + contents + " results in a circular dependency."), message.socket);
+	    continue;
+	  }
+
+	  if(newversion == 0) {
+	    // Client -> Database error
+	    SS_Server::broadcast(MessageHandler::Error("Unable to change the value for " + cell), message.socket);
+	    continue;
+	  }
+
+	  // Everyone -> Update
+	  SS_Server::broadcast(MessageHandler::Update(newversion, cell, contents));
+
 	}
       // loop
       // sleep for 10 ms

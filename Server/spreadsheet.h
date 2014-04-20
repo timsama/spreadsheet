@@ -26,20 +26,9 @@ namespace sss {
   // Accessors
 
     int get_version();
-    std::map<std::string, std::string> get_cells();
-
-  // Modifiers
-    
-    // Returns 0 if circular dependency
-    //  or >0 new version number
     int enter(std::string cell, std::string contents);
-
-    // Returns 0 if unable to undo
-    //  or >0 new version number
-    //  has out parameters to retrieve new state:
-    //   either the cell and contents
-    //   or blank strings if nothing to undo 
     int undo(std::string *cell, std::string *contents);
+    std::map<std::string, std::string> get_cells();
 
     // Utilities
     bool free_from_circular(std::string cell, std::string contents);
