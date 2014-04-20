@@ -149,10 +149,12 @@ namespace SS
         private void Update(String version, SyncCell cell)
         {
             // unregister so later file openings don't trigger this
-            //msgHand.Updated -= Update;
+            msgHand.Updated -= Update;
 
             // open the file
             childcount++;
+
+            Thread.Sleep(3000);
             this.BeginInvoke(new Action(() =>
             {
                 MainForm handle = new MainForm(selectedFilename, version, this);
@@ -222,6 +224,20 @@ namespace SS
         // creates a spreadsheet file
         private bool createSpreadsheet(string filename)
         {
+            // check the filename for more than one period, or presence of a period with the wrong extension
+            if((filename.IndexOf('.') != filename.LastIndexOf('.')) || (filename.Contains('.') && filename.Substring(filename.Length - 2).ToLower() != ".ss")){
+                MessageBox.Show(filename.Substring(filename.Length - 2) + "Only .ss extensions are allowed.");
+                return false;
+            }
+
+            // replace any .SS with .ss
+            filename = filename.Replace(".SS", ".ss");
+
+            // add .ss to filename if it lacks a period
+            if(! filename.Contains('.')){
+                filename += ".ss";
+            }
+
             // save the filename for creation of the MainForm later
             selectedFilename = filename;
 
