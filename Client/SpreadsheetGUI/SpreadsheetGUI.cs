@@ -245,9 +245,9 @@ namespace SS
                 ssPanel.GetSelection(out col, out row);
 
                 // try to update the cell model if new contents are different than current contents
-                if (contentsTextBox.Text.Trim().ToUpper().Replace(" ", String.Empty) != getCellModelContents("" + (char)('A' + col) + (row + 1)))
+                if (contentsTextBox.Text.Trim().ToUpper().Replace(" ", String.Empty).Replace("\n", "") != getCellModelContents("" + (char)('A' + col) + (row + 1)))
                 {
-                    if (updateCellModel(row, col, contentsTextBox.Text.Trim()))
+                    if (updateCellModel(row, col, contentsTextBox.Text.Trim().Replace("\n", "")))
                     {
                         // return focus to the spreadsheetPanel
                         ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
@@ -524,6 +524,9 @@ namespace SS
             // update the model for each cell
             foreach (SyncCell cell in cells)
                 spreadsheetModel.DirectSetCell(cell.Name, cell.Contents);
+
+            // put the cursor back in the spreadsheet
+            ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
 
             // recalculate all cells since we dummied some stuff out with zeroes
             hardResetAllCells();
