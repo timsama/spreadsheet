@@ -17,9 +17,6 @@ namespace sss {
     std::string name;
     dependency_graph dependencies;
     spreadsheet_db ssdb;
-
-    // Utilities
-    bool free_from_circular(std::string cell, std::string contents);
     
   public:
   // Constructor / Destructor
@@ -43,6 +40,9 @@ namespace sss {
     //   either the cell and contents
     //   or blank strings if nothing to undo 
     int undo(std::string *cell, std::string *contents);
+
+    // Utilities
+    bool free_from_circular(std::string cell, std::string contents);
 
   };
 

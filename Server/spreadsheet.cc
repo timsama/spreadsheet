@@ -1,5 +1,6 @@
 #include "spreadsheet.h"
 #include "spreadsheet_db.h"
+#include "parsecells.h"
 
 namespace sss {
 
@@ -49,10 +50,13 @@ namespace sss {
   }
 
   // Utility to manage the dependency graph
+  // checks to see if contents will result in a circular dependency
+  // if they do, returns false
+  // if they don't, adds cells to graph and returns true
   bool spreadsheet::free_from_circular(std::string cell, std::string contents) {
 
-    // TO-DO use the parser to actually get cells...
-    std::set<std::string> content_cells = std::set<std::string>();
+    // Use the parser to actually get cells
+    std::set<std::string> content_cells = parsecells::parse(contents);
 
     std::queue<std::string> cells;
     
@@ -75,7 +79,7 @@ namespace sss {
       // Add current_cell's dependencies to the queue
       std::set<std::string> deps = this->dependencies.get_dependents(current_cell);
       for (std::set<std::string>::iterator it = deps.begin(); it != deps.end(); ++it) {
-	
+
 	// Circular dependency found if a child references the parent
 	if(*it == cell) {
 	  return false;
@@ -84,7 +88,10 @@ namespace sss {
 	}
       }
     }
-    
+
+    // Things look good!
+    dependencies.replace_dependents(cell, content_cells);    
+
     // The dependency graph was a DAG
     return true;  
   }
