@@ -36,13 +36,16 @@ class Server{
   Server();
   ~Server();
 
-  // call all of the necessary functions to handle the client and pass it to the SS_Server
-  void handle_client(Serv_Sock* serv_sock);
-
   // map to store spreadsheets currently being editted 
   std::map<std::string, SS_Server*> open_spreads;
 
+  void handle_client_thread(Serv_Sock* serv_sock);
+
  private:
+
+  // call all of the necessary functions to handle the client and pass it to the SS_Server
+  void handle_client(Serv_Sock* serv_sock);
+  
   std::list<std::string> file_return();
   
   void wait_authorize(Serv_Sock* serv_sock);
