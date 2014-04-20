@@ -5,40 +5,42 @@
 #include "Server.h"
 
 // constructor
-Server::Server(Serv_Sock* sock)
-  : serv_sock(sock)
+Server::Server()
 {
+  printf("CONSTRUCTED SERVER\n");
 }
 
 // destructor
 Server::~Server()
 {
+ printf("DESTRUCTED SERVER\n");
 }
 
 // call all of the necessary functions to handle the client and pass it to the SS_Server
-void Server::handle_client()
+void Server::handle_client(Serv_Sock* serv_sock)
 {
-  wait_authorize();
-  std::string filename = wait_open_create();
-  open_spreadsheet(filename);
+  wait_authorize(serv_sock);
+  std::string filename = wait_open_create(serv_sock);
+  printf("The filename in handle client is %s", filename.c_str());
+  open_spreadsheet(serv_sock, filename);
 }
 
-void Server::open_spreadsheet(std::string filename)
+void Server::open_spreadsheet(Serv_Sock* serv_sock, std::string filename)
 {
-  SS_Server* ss_s;
-
   // iterate through the open spreads map and determine if the given spread is in it
-  std::map<std::string, SS_Server>::iterator it;
+  std::map<std::string, SS_Server*>::iterator it;
   it = this->open_spreads.find(filename);
-  if(it == open_spreads.end())
+  printf("Searched a map of size %d for %s before insert.\n", this->open_spreads.size(), filename.c_str());
+  if(it == this->open_spreads.end())
     {
       // Create new
-      SS_Server new_ss_s(filename);
-      std::pair<std::string, SS_Server> spread(filename, new_ss_s);
-      open_spreads.insert(spread);
-      
+      SS_Server* new_ss_s;
+      new_ss_s = new SS_Server(filename);
+      std::pair<std::string, SS_Server*> spread(filename, new_ss_s);
+      this->open_spreads.insert(spread);
+      printf("AFTER INSERT: Searched a map of size %d for %s.\n", this->open_spreads.size(), filename.c_str());
       it = this->open_spreads.find(filename);
-      it->second.add_sock(serv_sock);
+      it->second->add_sock(serv_sock);
       //Fork
       int pid = fork();
       if (pid < 0)
@@ -50,23 +52,23 @@ void Server::open_spreadsheet(std::string filename)
 	{
 	  // child process
 	  printf("Server_loop was started.\n");
-	  it->second.server_loop();
-	  printf("The pointer to the Serv_Sock is %h.", it);
+	  it->second->server_loop();
+	  printf("The pointer to the Serv_Sock is %d.", &it->second);
 	  exit(0);
 	}
     }
   else
     {
       // Use existing
-      it->second.add_sock(serv_sock);
+      it->second->add_sock(serv_sock);
     }
 
-  it->second.socket_loop(serv_sock);
+  it->second->socket_loop(serv_sock);
   printf("Finished socket loop\n");
 }
 
 
-void Server::wait_authorize()
+void Server::wait_authorize(Serv_Sock* serv_sock)
 {
   std::string message;
   std::string send_message;
@@ -153,7 +155,7 @@ std::list<std::string> Server::file_return()
   return mylist;
 }
 
-std::string Server::wait_open_create()
+std::string Server::wait_open_create(Serv_Sock* serv_sock)
 {
   std::string filename;
   std::string message;
@@ -201,6 +203,8 @@ std::string Server::wait_open_create()
 	    {
 	      // no error in message send spreadsheet
 	      printf("The message was valid.\n ");
+	      filename = mh.name;
+	      printf("Filename inside of wait_open_create is %s.\n", filename.c_str());
 	      break;
 	    }
 	  else if (open) 
@@ -217,7 +221,6 @@ std::string Server::wait_open_create()
 	      serv_sock->serv_send(send_message);
 	      printf("A spreadsheet already exists with the requested name. An error was sent\n"); 
 	    }
-	  filename = mh.name;
 	}
        else if ((mh.key.compare("DISCONNECT")==0))
 	{

@@ -7,10 +7,12 @@
 SS_Server::SS_Server(std::string fn)
   : ss(fn)
 {
+  printf("CONSTRUCTED SS_SERVER FILENAME %s\n",fn.c_str());
 }
 
 SS_Server::~SS_Server()
 {
+printf("DESTRUCTED SS_SERVER\n");
 }
 
 void SS_Server::add_sock(Serv_Sock* sock)
@@ -49,7 +51,7 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 	  std::cout << "Pushing a " << mh.key << " command on to the queue.\n";
 	  // lock the messages queue and the message handler to it
 	  messages.push(mh);
-	  printf("The queue is size %d for the SS_Server %h inside of socket loop.\n",messages.size(),sock);
+	  printf("The queue is size %d for the SS_Server %d inside of socket loop.\n",messages.size(),this);
 	}
       // else determine the return message based on it
       else
@@ -109,11 +111,11 @@ void SS_Server::disconnect(Serv_Sock* sock)
 // It broadcasts response messages to all sockets in the sockets set
 void SS_Server::server_loop()
 {
-  printf("Inside server_loop the size of messages is %d.\n",messages.size());
+  //printf("Inside server_loop the size of messages is %d for SS_Server %d.\n",messages.size(),this);
   // while the sockets set is not empty  
   while(!sockets.empty())
     {
-      printf("Inside server_loop inside sockets.empty the size of messages is %d.\n",messages.size());
+      //printf("Inside server_loop inside sockets.empty the size of messages is %d.\n",messages.size());
       // while the queue of message handlers is not empty
       while(!messages.empty())
 	{
@@ -124,7 +126,7 @@ void SS_Server::server_loop()
 	}
       // loop
       // sleep for 10 ms
-      usleep(10000);
+      usleep(1000000);
     }// end of while
   printf("Inside server loop no more sockets editting the spread\n");
 }  

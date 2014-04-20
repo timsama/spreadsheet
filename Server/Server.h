@@ -4,7 +4,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-
+#include <boost/thread/thread.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,22 +33,20 @@
 
 class Server{
  public:
-  Server(Serv_Sock* sock);
+  Server();
   ~Server();
 
   // call all of the necessary functions to handle the client and pass it to the SS_Server
-  void handle_client();
+  void handle_client(Serv_Sock* serv_sock);
 
   // map to store spreadsheets currently being editted 
-  std::map<std::string, SS_Server> open_spreads;
+  std::map<std::string, SS_Server*> open_spreads;
 
  private:
-  int socket;
-  Serv_Sock* serv_sock;
   std::list<std::string> file_return();
   
-  void wait_authorize();
-  std::string wait_open_create();
-  void open_spreadsheet(std::string filename);
+  void wait_authorize(Serv_Sock* serv_sock);
+  std::string wait_open_create(Serv_Sock* serv_sock);
+  void open_spreadsheet(Serv_Sock* serv_sock, std::string filename);
 };
 #endif

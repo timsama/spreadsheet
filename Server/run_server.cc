@@ -94,6 +94,9 @@ int main(void)
 
   printf("server: waiting for connections...\n");
   
+  Server serv;
+  printf("Server was started.\n");
+
   while(1) {  // main accept() loop
     sin_size = sizeof their_addr;
     
@@ -105,24 +108,18 @@ int main(void)
       //continue;
    }
 
-
     // pass new_fd to the Server_Sock wrapper class
     Serv_Sock* serv_sock;
     serv_sock = new Serv_Sock(new_fd);
-
-    // start server on new socket
-    Server serv(serv_sock);
-
 
     inet_ntop(their_addr.ss_family,
 	      get_in_addr((struct sockaddr *)&their_addr),
 	      s, sizeof s);
     printf("server: got connection from %s\n", s);
-    
 
     // after an accept, a child process is forked off to handle the connection
     // create child process
-      pid = fork();
+    /*   pid = fork();
       if (pid < 0)
         {
 	  perror("ERROR on fork");
@@ -133,18 +130,13 @@ int main(void)
 	  // shutdown and close the socket on the server: 2 means stop sending and receiving
 	  //shutdown(sockfd, 2);
 	  close(sockfd);
-
+    */
 	  // process the message from the client
-	  printf("Running server handle_client()\n");
-	  serv.handle_client();
+	  printf("Running server handle_client() on Server %d\n", &serv);
+	  boost::thread makethread(serv.handle_client, serv_sock);
 	  exit(0);
-        }
-      else
-        {
-	  // parent thread
-        }
       
-      } /*end of while*/
+  } /*end of while*/
 
   return 0;
 }
