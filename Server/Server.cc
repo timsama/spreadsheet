@@ -19,7 +19,8 @@ Server::~Server()
 // call all of the necessary functions to handle the client and pass it to the SS_Server
 void Server::handle_client_thread(Serv_Sock* serv_sock)
 {
-  boost::thread* workerThread(boost::bind(&Server::handle_client, this, boost::ref(serv_sock)));
+  boost::thread workerThread(boost::bind(&Server::handle_client, this, boost::ref(serv_sock)));
+  workerThread.join();
 }
 
 // call all of the necessary functions to handle the client and pass it to the SS_Server
