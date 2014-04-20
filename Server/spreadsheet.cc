@@ -33,8 +33,6 @@ namespace sss {
   int spreadsheet::enter(std::string cell, std::string contents) {
     std::cout << cell << " = " << contents << std::endl;
     if(free_from_circular(cell, contents)) {      
-      // Add the cells dependencies
-      dependencies.replace_dependents(cell, parsecells::parse(contents));
       return this->ssdb.enter(cell, contents);
     } else {
       // Circular dependency
@@ -100,7 +98,10 @@ namespace sss {
 	}
       }
     }
-    
+
+    // Things look good!
+    dependencies.replace_dependents(cell, content_cells);    
+
     // The dependency graph was a DAG
     return true;  
   }
