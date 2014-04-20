@@ -133,7 +133,7 @@ int main(void)
     */
 	  // process the message from the client
 	  printf("Running server handle_client() on Server %d\n", &serv);
-	  boost::thread makethread(serv.handle_client, serv_sock);
+	  serv.handle_client_thread(serv_sock);
 	  exit(0);
       
   } /*end of while*/
