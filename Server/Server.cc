@@ -51,6 +51,7 @@ void Server::open_spreadsheet(std::string filename)
 	  // child process
 	  printf("Server_loop was started.\n");
 	  it->second.server_loop();
+	  printf("The pointer to the Serv_Sock is %h.", it);
 	  exit(0);
 	}
     }

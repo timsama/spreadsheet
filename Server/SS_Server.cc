@@ -49,7 +49,7 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 	  std::cout << "Pushing a " << mh.key << " command on to the queue.\n";
 	  // lock the messages queue and the message handler to it
 	  messages.push(mh);
-	  printf("The queue is size %d inside of socket loop.\n",messages.size());
+	  printf("The queue is size %d for the SS_Server %h inside of socket loop.\n",messages.size(),sock);
 	}
       // else determine the return message based on it
       else
