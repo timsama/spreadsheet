@@ -16,6 +16,7 @@ SS_Server::~SS_Server()
 void SS_Server::add_sock(Serv_Sock* sock)
 {
   // add the given socket to the set
+  printf("A socket was added to sockets.\n");
   sockets.insert(sock);
 }
 
@@ -27,14 +28,17 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 {
   std::string message;
   std::string send_message;
-
-  while(1)
-    {
+  bool run = true;
+  int count = 0;
+  while(run)
+  {
       // wait for a message from the sock
       // receive
       message = sock->serv_recv();
-      printf("%d: ", sock->id); 
-      std::cout << "Here is the message: " << message << std::endl;
+      if(message.compare("")==0)
+	run = false;
+
+      std::cout << "Here is the message inside of socket_loop: " << message << std::endl;
       
       // create a message handler for the received message
       MessageHandler mh(message, sock);
@@ -42,8 +46,10 @@ void SS_Server::socket_loop(Serv_Sock* sock)
       // if the message is an undo or enter type let the server_loop handle the return mess
       if ((mh.key.compare("UNDO")==0)||(mh.key.compare("ENTER")==0))
 	{
+	  std::cout << "Pushing a " << mh.key << " command on to the queue.\n";
 	  // lock the messages queue and the message handler to it
 	  messages.push(mh);
+	  printf("The queue is size %d inside of socket loop.\n",messages.size());
 	}
       // else determine the return message based on it
       else
@@ -51,13 +57,25 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 	  // use message handler to format a message and broadcast
 	  if(mh.key.compare("RESYNC")==0)
 	    {
-	      //send_message = mh.Sync(mh.version,...);
+	      std::map<std::string,std::string> fakemap;
+	      fakemap.insert(std::pair<std::string,std::string>("A2","goodbye"));
+	      send_message = MessageHandler::Sync(2,fakemap);
 	    }
-	  else if (mh.key.compare("SAVED")==0)
+	  else if (mh.key.compare("DISCONNECT")==0)
 	    {
+	      printf("Received DISCONNECT.\n");
+	      // the client has purposefully closed the spreadsheet
+	      // disconnect the socket from the current ss_server
+	      run = false;
+	      this->disconnect(sock);
+	      return;
 	    }
-	  else if (mh.key.compare("UPDATE")==0)
+	  else if (mh.key.compare("SAVE")==0)
 	    {
+	      // do something with the version number
+	      // check if the version number is correct
+	      // if it is incorrect send sync instead of saving
+	      send_message = MessageHandler::Saved();
 	    }
 	  else
 	    {
@@ -66,11 +84,24 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 	  // broadcast the return message to the provided sock
 	  broadcast(send_message, sock);
 	}
-      
       // loop
-    }// end of while
+      }// end of while
 }
 
+// remove the given socket from the sockets set and close it
+void SS_Server::disconnect(Serv_Sock* sock)
+{
+ shutdown(sock->id, 2);
+  // close the socket
+  close(sock->id);
+  // delete the serv_sock
+  delete sock;
+  // remove the pointer from the set
+  sockets.erase(sock);
+
+  printf("Inside disconnect function\n");
+ 
+}
 
 
 // The server_loop processes messages in the messages queue as long as it is not empty
@@ -78,14 +109,16 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 // It broadcasts response messages to all sockets in the sockets set
 void SS_Server::server_loop()
 {
- 
+  printf("Inside server_loop the size of messages is %d.\n",messages.size());
   // while the sockets set is not empty  
   while(!sockets.empty())
     {
+      printf("Inside server_loop inside sockets.empty the size of messages is %d.\n",messages.size());
       // while the queue of message handlers is not empty
       while(!messages.empty())
 	{
 	  // pop the messge off of the queue
+	  printf("Inside server_loop.  The queue is not empty.\n");
 	  MessageHandler new_mh = messages.front();
 	  messages.pop();
 	}
@@ -93,7 +126,7 @@ void SS_Server::server_loop()
       // sleep for 10 ms
       usleep(10000);
     }// end of while
-
+  printf("Inside server loop no more sockets editting the spread\n");
 }  
 
 // send a message to every socket in the serv_sock list of sockets

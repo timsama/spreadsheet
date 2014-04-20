@@ -1,7 +1,7 @@
 server:	server.cc run_server.cc Server.cc Server.h SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o
 	g++ -o server run_server.cc Server.cc SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o -lsqlite3
 
-Serv_Sock.cc:		Serv_Sock.cc Serv_Sock.h
+Serv_Sock.o:		Serv_Sock.cc Serv_Sock.h
 			g++ -c Serv_Sock.cc
 
 MessageHandler.o:	MessageHandler.cc MessageHandler.h
