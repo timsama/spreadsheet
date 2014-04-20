@@ -206,7 +206,7 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
 		found = true;
 	    }
 	  
-	  if(found && open) || (!found && create))
+	  if((found && open) || (!found && create))
 	    {
 	      // no error in message send spreadsheet
 	      printf("The message was valid.\n ");
