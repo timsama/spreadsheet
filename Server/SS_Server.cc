@@ -127,23 +127,26 @@ void SS_Server::server_loop()
 	  MessageHandler message = messages.front();
 	  messages.pop();
 
-	  if(message.version != ss.get_version()) {
+	  int currentversion = ss.get_version();
+
+	  if(message.version != boost::lexical_cast<std::string>(currentversion)) {
 	    // CLient -> SYNC with latest version
 	    SS_Server::broadcast(MessageHandler::Sync(ss.get_version(), ss.get_cells()), message.socket);
 	    continue;
 	  } 
 
 	  int newversion = 0;
+	  std::string cell = "";
+	  std::string contents = "";
+
 	  if(message.key == "ENTER") {
 	    newversion = ss.enter(message.cell, message.content);
 	    cell = message.cell;
-	    contents = message.contents;
+	    contents = message.content;
 	  }
 
 	  if(message.key == "UNDO") {
-	    std::string cell = "";
-	    std::string contents = "";
-	    newversion ss.undo(&cell, $contents);
+	    newversion = ss.undo(&cell, &contents);
 	  }
 
 	  if(newversion == -1) {
