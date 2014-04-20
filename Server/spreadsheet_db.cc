@@ -16,7 +16,7 @@ namespace sss {
 
   int spreadsheet_db::open_db() {
     // Open the database file
-    int error = sqlite3_open(this->name.c_str(), &this->db);
+    int error = sqlite3_open(("spreadsheets/" + this->name).c_str(), &this->db);
     // Turn on extended error codes (for debugging)
     sqlite3_extended_result_codes(this->db, 1);
     if(error != SQLITE_OK) {
