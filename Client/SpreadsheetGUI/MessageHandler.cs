@@ -134,13 +134,25 @@ namespace SS
         // prepares and executes a Sync event by calling TriggerUpdated after some initial processing
         public void TriggerSync(String message)
         {
+            // declare the escape delimiter
+            char[] esc = new char[1];
+            esc[0] = (char)27;
+
+            // get the server's version number
+            String version = message.Substring(0, message.IndexOf(esc[0]));
+
+            // parse the server version as an int and make it the new version of the spreadsheet
+            int serverVersion = 0;
+            Int32.TryParse(version, out serverVersion);
+            clientVersion = serverVersion;
+
             // run the Sync as an update
             TriggerUpdated(message);
 
             // if there is still a cell to send (TriggerUpdated will nullify CellToSend if the sync changed that cell), then resend
             if (CellToSend != null)
             {
-                EnterChange(clientVersion.ToString(), CellToSend);
+                EnterChange(CellToSend);
             }
         }
 
@@ -293,8 +305,10 @@ namespace SS
             }
             catch (SocketException e)
             {
-                ErrorMessage(e.Message);
-                //ErrorMessage("Server is not available. Please try again.");
+                if (e != null)
+                    ErrorMessage(e.Message);
+                else 
+                    ErrorMessage("Server is not available. Please try again.");
             }
         }
 
@@ -306,9 +320,11 @@ namespace SS
             message = message.Replace("\\n", "");
             message = message.Replace("\n", "") +"\n";
 
-            outSocket.BeginSend(message, (e, o) => { }, null);
-            outSocket.BeginReceive(ReceiveMessage, null);
-
+            if (outSocket != null)
+            {
+                outSocket.BeginSend(message, (e, o) => { }, null);
+                outSocket.BeginReceive(ReceiveMessage, null);
+            }
             // DEBUG: REMOVE BEFORE RELEASE
             //System.Windows.Forms.MessageBox.Show(message);
         }
@@ -335,13 +351,13 @@ namespace SS
         }
 
         // sends a change to the server
-        public void EnterChange(String version, SyncCell cell)
+        public void EnterChange(SyncCell cell)
         {
             // save the cell to send out in case it needs to be resent
             CellToSend = cell;
 
             // send the ENTER command with the version number, and the cell to change
-            Send("ENTER" + (char)27 + version + (char)27 + cell.Name + (char)27 + cell.Contents + "\n");
+            Send("ENTER" + (char)27 + clientVersion + (char)27 + cell.Name + (char)27 + cell.Contents + "\n");
 
             // DEBUG: REMOVE BEFORE RELEASE
             //TriggerUpdated(version + (char)27 + cell.Name + (char)27 + cell.Contents);

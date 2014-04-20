@@ -43,7 +43,7 @@
             // player_textbox
             // 
             this.player_textbox.Location = new System.Drawing.Point(55, 10);
-            this.player_textbox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.player_textbox.Margin = new System.Windows.Forms.Padding(2);
             this.player_textbox.Name = "player_textbox";
             this.player_textbox.Size = new System.Drawing.Size(116, 20);
             this.player_textbox.TabIndex = 0;
@@ -61,7 +61,7 @@
             // Play_button
             // 
             this.Play_button.Location = new System.Drawing.Point(183, 7);
-            this.Play_button.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Play_button.Margin = new System.Windows.Forms.Padding(2);
             this.Play_button.Name = "Play_button";
             this.Play_button.Size = new System.Drawing.Size(42, 24);
             this.Play_button.TabIndex = 2;
@@ -82,7 +82,7 @@
             // receive_textbox
             // 
             this.receive_textbox.Location = new System.Drawing.Point(12, 180);
-            this.receive_textbox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.receive_textbox.Margin = new System.Windows.Forms.Padding(2);
             this.receive_textbox.Name = "receive_textbox";
             this.receive_textbox.ReadOnly = true;
             this.receive_textbox.Size = new System.Drawing.Size(419, 180);
@@ -102,7 +102,7 @@
             // send_button
             // 
             this.send_button.Location = new System.Drawing.Point(94, 54);
-            this.send_button.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.send_button.Margin = new System.Windows.Forms.Padding(2);
             this.send_button.Name = "send_button";
             this.send_button.Size = new System.Drawing.Size(45, 19);
             this.send_button.TabIndex = 7;
@@ -133,11 +133,12 @@
             // send_textbox
             // 
             this.send_textbox.Location = new System.Drawing.Point(12, 75);
-            this.send_textbox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.send_textbox.Margin = new System.Windows.Forms.Padding(2);
             this.send_textbox.Name = "send_textbox";
             this.send_textbox.Size = new System.Drawing.Size(418, 84);
             this.send_textbox.TabIndex = 6;
             this.send_textbox.Text = "";
+            this.send_textbox.TextChanged += new System.EventHandler(this.send_textbox_TextChanged);
             // 
             // Form1
             // 
@@ -154,7 +155,7 @@
             this.Controls.Add(this.Play_button);
             this.Controls.Add(this.Player_label);
             this.Controls.Add(this.player_textbox);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);
