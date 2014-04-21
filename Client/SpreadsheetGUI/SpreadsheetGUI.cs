@@ -670,6 +670,9 @@ namespace SS
         {
             if ((cell.Contents.Length > 0) && (cell.Contents[0] == '='))
             {
+                // in formulas, there is no reason to ever have lowercase letters
+                cell = new SyncCell(cell.Name, cell.Contents.ToUpper());
+
                 // get the name of the first invalid field--if any
                 String invalidField = Formula.FindInvalidField(cell.Contents.Substring(1, cell.Contents.Length - 1), s => s.ToUpper(), validate, spreadsheetModel.Lookup);
 

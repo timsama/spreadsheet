@@ -156,7 +156,7 @@ namespace SS
             // open the file
             childcount++;
 
-            Thread.Sleep(3000);
+            //Thread.Sleep(3000);
             this.BeginInvoke(new Action(() =>
             {
                 MainForm handle = new MainForm(selectedFilename, version, this);
