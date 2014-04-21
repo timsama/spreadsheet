@@ -225,12 +225,18 @@ namespace SS
         // starts the progress bar marquee's animation
         private void StartMarquee()
         {
-            statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Marquee; }));
+            if (statusProgressBar.IsHandleCreated)
+            {
+                statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Marquee; }));
+            }
         }
         // stops the progress bar marquee's animation
         private void StopMarquee()
         {
-            statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Blocks; }));
+            if (statusProgressBar.IsHandleCreated)
+            {
+                statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Blocks; }));
+            }
         }
 
         /// <summary>
@@ -443,6 +449,9 @@ namespace SS
         {
             // show message to user
             MessageBox.Show(message);
+
+            // unlock user input
+            unlockInput();
         }
 
         /// <summary>
@@ -466,6 +475,10 @@ namespace SS
             // set the new version of the cell
             version = _version;
 
+            // don't do anything if the cell's name is empty
+            if (cell.Name.Length == 0)
+                return;
+            
             // update the cell
             foreach (string vcell in spreadsheetModel.SetContentsOfCell(cell.Name, cell.Contents))
             {

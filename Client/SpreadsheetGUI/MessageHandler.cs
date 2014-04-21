@@ -129,6 +129,12 @@ namespace SS
                     TriggerSync(message);
                     break;
             }
+
+            // start listening for the next message
+            if (outSocket != null)
+            {
+                outSocket.BeginReceive(ReceiveMessage, null);
+            }
         }
 
         // prepares and executes a Sync event by calling TriggerUpdated after some initial processing
@@ -238,11 +244,17 @@ namespace SS
             // call updated for single cell updates; multi cell updates only happen upon file opening or resyncs, so they can be handled like a sync
             if (cells.Count == 1)
             {
-                Updated(version, cells.First());
+                if (Updated != null)
+                {
+                    Updated(version, cells[0]);
+                }
             }
             else
             {
-                Sync(version, cells);
+                if (Sync != null)
+                {
+                    Sync(version, cells);
+                }
             }
 
             return;
