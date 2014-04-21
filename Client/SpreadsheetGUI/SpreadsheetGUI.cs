@@ -24,6 +24,7 @@ namespace SS
         private String filename;
         private String version;
         private bool locked;
+        private object displayLock;
 
         private GUILanguage guiLang;
 
@@ -64,6 +65,9 @@ namespace SS
         public MainForm()
         {
             InitializeComponent();
+
+            // initialize the display lock
+            displayLock = new object();
 
             //set the underlying model to the file
             spreadsheetModel = new Spreadsheet(validate, s => s.ToUpper(), "PS6");
@@ -203,21 +207,24 @@ namespace SS
         /// <param name="ss"></param>
         private void displaySelection(SpreadsheetPanel ss)
         {
-            int row, col;
-            String value;
-            ss.GetSelection(out col, out row);
-            ss.GetValue(col, row, out value);
+            lock (displayLock)
+            {
+                int row, col;
+                String value;
+                ss.GetSelection(out col, out row);
+                ss.GetValue(col, row, out value);
 
-            // Update the status labels
-            cellLabel.Text = guiLang.cell + (char)('A' + col) + (row + 1);
-            valueLabel.Text = guiLang.value + value;
-            fileStatusLabel.Text = spreadsheetModel.Changed ? guiLang.unsavedChanges : guiLang.savedChanges ;
+                // Update the status labels
+                cellLabel.Text = guiLang.cell + (char)('A' + col) + (row + 1);
+                valueLabel.Text = guiLang.value + value;
+                fileStatusLabel.Text = spreadsheetModel.Changed ? guiLang.unsavedChanges : guiLang.savedChanges;
 
-            // Fill contentsTextBox with the cell's data, and then set focus on it
-            contentsTextBox.Text = getCellModelContents(row, col);
+                // Fill contentsTextBox with the cell's data, and then set focus on it
+                contentsTextBox.Text = getCellModelContents(row, col);
 
-            // put the filename in the title bar if it is non-empty
-            Text = guiLang.title + ((spreadsheetModel.Filename == null) ? "" : " - " + spreadsheetModel.Filename);
+                // put the filename in the title bar if it is non-empty
+                Text = guiLang.title + ((spreadsheetModel.Filename == null) ? "" : " - " + spreadsheetModel.Filename);
+            }
         }
 
         /// <summary>
