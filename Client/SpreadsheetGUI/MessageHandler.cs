@@ -167,8 +167,17 @@ namespace SS
             List<SyncCell> cells = new List<SyncCell>();
 
             // get the server's version number
-            String version = message.Substring(0, message.IndexOf(esc[0]));
-            message = message.Substring(message.IndexOf(esc[0]) + 1);
+            String version = "";
+            if (message.Length > 0 && message.IndexOf(esc[0]) > 0)
+            {
+                version = message.Substring(0, message.IndexOf(esc[0]));
+                message = message.Substring(message.IndexOf(esc[0]) + 1);
+            }
+            else
+            {
+                version = message;
+                message = "";
+            }
 
             // parse the server version as an int
             int serverVersion = 0;
