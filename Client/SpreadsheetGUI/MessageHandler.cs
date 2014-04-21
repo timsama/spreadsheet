@@ -139,15 +139,12 @@ namespace SS
             esc[0] = (char)27;
 
             // get the server's version number
-            String version = "0";
+            String version = "NOBODY SHOULD EVER SEE THIS";
             if (message.Contains(esc[0]))
-            {
                 version = message.Substring(0, message.IndexOf(esc[0]));
-            }
             else
             {
                 version = message;
-                message = "";
             }
 
             // parse the server version as an int and make it the new version of the spreadsheet
