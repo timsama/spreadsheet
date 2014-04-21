@@ -11,6 +11,21 @@ void sigchld_handler(int s)
   while(waitpid(-1, NULL, WNOHANG) > 0);
 }
 
+void quit_thread(int sock){
+  std::string input = "";
+  while(1) {
+    std::cout << "Enter 'Q' to quit at any time\n";
+    std::cin >> input;
+    if(input == "Q") {
+      shutdown(sock, 2);
+      close(sock);
+      exit(0);
+    } else {
+      input = "";
+    }
+  }
+}
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -96,6 +111,9 @@ int main(void)
   
   Server serv;
   printf("Server was started.\n");
+
+  // Start "Quit" thread
+  boost::thread quitThread(quit_thread, sockfd);
 
   while(1) {  // main accept() loop
     sin_size = sizeof their_addr;

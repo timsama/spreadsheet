@@ -38,7 +38,7 @@ void Server::open_spreadsheet(Serv_Sock* serv_sock, std::string filename)
 
   {
     // Lock while checking and adding spreadsheets to the map
-    boost::mutex::scoped_lock lock(guard2);
+    //boost::mutex::scoped_lock lock(guard2);
     it = this->open_spreads.find(filename);
     if(it == this->open_spreads.end())
       {
