@@ -485,7 +485,10 @@ namespace SS
 
             // don't do anything if the cell's name is empty
             if (cell.Name.Length == 0)
+            {
+                unlockInput();
                 return;
+            }
             
             // update the cell
             foreach (string vcell in spreadsheetModel.SetContentsOfCell(cell.Name, cell.Contents))
@@ -801,6 +804,9 @@ namespace SS
         {
             if (!locked)
             {
+                // lock input until we get a response
+                lockInput();
+
                 // send the undo command with the spreadsheet's current version
                 msgHand.Undo(version);
             }
