@@ -132,7 +132,8 @@ namespace SS
         private void Sync(String version, IEnumerable<SyncCell> cells)
         {
             // unregister so later file openings don't trigger this
-            //msgHand.Sync -= Sync;
+            msgHand.Updated -= Update;
+            msgHand.Sync -= Sync;
 
             // open the file;
             childcount++;
@@ -150,11 +151,11 @@ namespace SS
         {
             // unregister so later file openings don't trigger this
             msgHand.Updated -= Update;
+            msgHand.Sync -= Sync;
 
             // open the file
             childcount++;
 
-            Thread.Sleep(3000);
             this.BeginInvoke(new Action(() =>
             {
                 MainForm handle = new MainForm(selectedFilename, version, this);
@@ -225,8 +226,8 @@ namespace SS
         private bool createSpreadsheet(string filename)
         {
             // check the filename for more than one period, or presence of a period with the wrong extension
-            if((filename.Length > 2) && (filename.IndexOf('.') != filename.LastIndexOf('.')) || (filename.Contains('.') && filename.Substring(filename.Length - 2).ToLower() != ".ss")){
-                MessageBox.Show(filename.Substring(filename.Length - 2) + "Only .ss extensions are allowed.");
+            if((filename.Length > 3) && (filename.IndexOf('.') != filename.LastIndexOf('.')) || (filename.Contains('.') && filename.Substring(filename.Length - 3).ToLower() != ".ss")){
+                handleErrorMessage("Only .ss extensions are allowed.");
                 return false;
             }
 
@@ -243,6 +244,7 @@ namespace SS
 
             // add the Open method to the list of event handlers for the message handler
             msgHand.Updated += Update;
+            msgHand.Sync += Sync;
             msgHand.CreateFile(filename);
 
             return false;

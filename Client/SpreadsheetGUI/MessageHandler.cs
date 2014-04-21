@@ -53,6 +53,9 @@ namespace SS
         // The List contains all cell names and contents that should remain after wiping the spreadsheet
         public event Action<String, List<SyncCell>> Sync;
 
+        // register for this event to be notified when the connection to the server has failed
+        public event Action Disconnected;
+
         // default constructor
         public MessageHandler()
         {
@@ -89,7 +92,17 @@ namespace SS
         // evaluate message to determine which event to raise, and what values to pass in it
         public void ReceiveMessage(String message, Exception e, object payload)
         {
-            //System.Windows.Forms.MessageBox.Show(message);
+            // if a disconnected exception is received, notify the user and quit
+            if ((e != null) && (e.GetType() == typeof(DisconnectedException)))
+            {
+                if (Disconnected != null)
+                {
+                    Disconnected();
+                }
+                return;
+            }
+
+            //System.Windows.Forms.MessageBox.Show("Message: " + message + "\n Version: " + clientVersion);
 
             // get the keyword (i.e. the first word of the message)
             String keyword;
@@ -129,6 +142,12 @@ namespace SS
                     TriggerSync(message);
                     break;
             }
+
+            // start listening for the next message
+            if (outSocket != null)
+            {
+                outSocket.BeginReceive(ReceiveMessage, null);
+            }
         }
 
         // prepares and executes a Sync event by calling TriggerUpdated after some initial processing
@@ -139,7 +158,13 @@ namespace SS
             esc[0] = (char)27;
 
             // get the server's version number
-            String version = message.Substring(0, message.IndexOf(esc[0]));
+            String version = "NOBODY SHOULD EVER SEE THIS";
+            if (message.Contains(esc[0]))
+                version = message.Substring(0, message.IndexOf(esc[0]));
+            else
+            {
+                version = message;
+            }
 
             // parse the server version as an int and make it the new version of the spreadsheet
             int serverVersion = 0;
@@ -232,11 +257,17 @@ namespace SS
             // call updated for single cell updates; multi cell updates only happen upon file opening or resyncs, so they can be handled like a sync
             if (cells.Count == 1)
             {
-                Updated(version, cells.First());
+                if (Updated != null)
+                {
+                    Updated(version, cells[0]);
+                }
             }
             else
             {
-                Sync(version, cells);
+                if (Sync != null)
+                {
+                    Sync(version, cells);
+                }
             }
 
             return;

@@ -42,15 +42,6 @@ namespace SS
 
             // set a handle to a new MessageHandler (each spreadsheet operates on its own socket)
             msgHand = new MessageHandler(_fileview.getMessageHandler());
-
-            // set up events to respond to the MessageHandler
-            msgHand.Saved += handleSaved;
-            msgHand.Updated += handleUpdate;
-            msgHand.Sync += handleSync;
-            msgHand.ErrorMessage += handleErrorMessage;
-
-            // open the file
-            msgHand.OpenFile(_filename);
         }
 
         /// <summary>
@@ -93,13 +84,38 @@ namespace SS
         }
 
         /// <summary>
+        /// Event handler for when the spreadsheet panel has finished loading
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ssPanel_Load(object sender, EventArgs e)
+        {
+            // set up events to respond to the MessageHandler
+            msgHand.Saved += handleSaved;
+            msgHand.Updated += handleUpdate;
+            msgHand.Sync += handleSync;
+            msgHand.ErrorMessage += handleErrorMessage;
+            msgHand.Disconnected += handleDisconnected;
+
+            // open the file
+            msgHand.OpenFile(filename);
+        }
+
+        /// <summary>
+        /// Event handler for when server disconnects
+        /// </summary>
+        private void handleDisconnected()
+        {
+            MessageBox.Show("Server timed out.");
+            this.Close();
+        }
+
+        /// <summary>
         /// Check for unsaved changes when closing the spreadsheet
         /// </summary>
         /// <param name="e"></param>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            bool cancel = stopForUnsavedChanges();
-            e.Cancel = cancel;
             msgHand.Disconnect();
             base.OnFormClosing(e);
         }
@@ -161,11 +177,6 @@ namespace SS
             }
 
             displaySelection(ssPanel);
-        }        
-
-        private void ssPanel_Load(object sender, EventArgs e)
-        {
-
         }
 
         /// <summary>
@@ -222,12 +233,18 @@ namespace SS
         // starts the progress bar marquee's animation
         private void StartMarquee()
         {
-            statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Marquee; }));
+            if (statusProgressBar.IsHandleCreated)
+            {
+                statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Marquee; }));
+            }
         }
         // stops the progress bar marquee's animation
         private void StopMarquee()
         {
-            statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Blocks; }));
+            if (statusProgressBar.IsHandleCreated)
+            {
+                statusProgressBar.BeginInvoke(new Action(() => { statusProgressBar.Style = ProgressBarStyle.Blocks; }));
+            }
         }
 
         /// <summary>
@@ -440,6 +457,9 @@ namespace SS
         {
             // show message to user
             MessageBox.Show(message);
+
+            // unlock user input
+            unlockInput();
         }
 
         /// <summary>
@@ -463,6 +483,13 @@ namespace SS
             // set the new version of the cell
             version = _version;
 
+            // don't do anything if the cell's name is empty
+            if (cell.Name.Length == 0)
+            {
+                unlockInput();
+                return;
+            }
+            
             // update the cell
             foreach (string vcell in spreadsheetModel.SetContentsOfCell(cell.Name, cell.Contents))
             {
@@ -501,8 +528,14 @@ namespace SS
             lock (spreadsheetModel)
             {
                 locked = false;
-                ssPanel.BeginInvoke(new Action(() => { ssPanel.Enabled = true; }));
-                contentsTextBox.BeginInvoke(new Action(() => { contentsTextBox.ReadOnly = false; }));
+                if (ssPanel.IsHandleCreated)
+                {
+                    ssPanel.BeginInvoke(new Action(() => { ssPanel.Enabled = true; }));
+                }
+                if (contentsTextBox.IsHandleCreated)
+                {
+                    contentsTextBox.BeginInvoke(new Action(() => { contentsTextBox.ReadOnly = false; }));
+                }
                 StopMarquee();
             }
         }
@@ -523,33 +556,16 @@ namespace SS
                 spreadsheetModel.DirectSetCell(cell.Name, cell.Contents);
 
             // put the cursor back in the spreadsheet
-            ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
+            if (ssPanel.IsHandleCreated)
+            {
+                ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
+            }
 
             // recalculate all cells since we dummied some stuff out with zeroes
             hardResetAllCells();
 
             // allow the user to enter changes again
             unlockInput();
-        }
-
-        /// <summary>
-        /// Checks for unsaved changes, and prompts the user about them if they are present
-        /// </summary>
-        /// <returns>Whether or not to stop due to unsaved changes</returns>
-        private bool stopForUnsavedChanges()
-        {
-            // check to see if the spreadsheet has unsaved changes
-            if (spreadsheetModel.Changed)
-            {
-                // ask the user if they want to proceed despite unsaved changes
-                DialogResult result = MessageBox.Show(guiLang.unsavedChangesMessage, guiLang.title, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
-
-                // if they do not want to proceed, return true
-                return result == DialogResult.No;
-            }
-
-            // otherwise, do not stop for unsaved changes
-            return false;
         }
 
         /// <summary>
@@ -645,6 +661,9 @@ namespace SS
         {
             if ((cell.Contents.Length > 0) && (cell.Contents[0] == '='))
             {
+                // in formulas, there is no reason to ever have lowercase letters
+                cell = new SyncCell(cell.Name, cell.Contents.ToUpper());
+
                 // get the name of the first invalid field--if any
                 String invalidField = Formula.FindInvalidField(cell.Contents.Substring(1, cell.Contents.Length - 1), s => s.ToUpper(), validate, spreadsheetModel.Lookup);
 
@@ -785,6 +804,9 @@ namespace SS
         {
             if (!locked)
             {
+                // lock input until we get a response
+                lockInput();
+
                 // send the undo command with the spreadsheet's current version
                 msgHand.Undo(version);
             }
