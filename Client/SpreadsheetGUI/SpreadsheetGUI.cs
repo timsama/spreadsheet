@@ -257,7 +257,7 @@ namespace SS
                     }
 
                     // we handled the character input
-                    e.Handled = true;
+                    //e.Handled = true;
                 }
                 else
                 {
@@ -477,9 +477,6 @@ namespace SS
                     updateCellView(vcell, returnValue.ToString());
                 }
             }
-            
-            // put the cursor back in the spreadsheet
-            ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
 
             // recalculate the view
             updateAllCells();

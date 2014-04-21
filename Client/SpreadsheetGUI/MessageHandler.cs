@@ -168,7 +168,7 @@ namespace SS
 
             // get the server's version number
             String version = "";
-            if (message.IndexOf(esc[0]) > 0)
+            if (message.Length > 0 && message.IndexOf(esc[0]) > 0)
             {
                 version = message.Substring(0, message.IndexOf(esc[0]));
                 message = message.Substring(message.IndexOf(esc[0]) + 1);

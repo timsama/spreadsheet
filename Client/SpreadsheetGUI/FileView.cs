@@ -225,7 +225,7 @@ namespace SS
         private bool createSpreadsheet(string filename)
         {
             // check the filename for more than one period, or presence of a period with the wrong extension
-            if((filename.IndexOf('.') != filename.LastIndexOf('.')) || (filename.Contains('.') && filename.Substring(filename.Length - 2).ToLower() != ".ss")){
+            if((filename.Length > 2) && (filename.IndexOf('.') != filename.LastIndexOf('.')) || (filename.Contains('.') && filename.Substring(filename.Length - 2).ToLower() != ".ss")){
                 MessageBox.Show(filename.Substring(filename.Length - 2) + "Only .ss extensions are allowed.");
                 return false;
             }
