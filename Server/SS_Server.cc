@@ -1,20 +1,39 @@
 /*
- *SS_Server.cc
+ * SS_Server.cc
+ *
+ * This is a spreadsheet server responsible for handling changes from multiple clients editing
+ * a single spreadsheet.  
+ *
  */
 
 #include "SS_Server.h"
 
+// construct a spreadsheet object for a specific file
 SS_Server::SS_Server(std::string fn)
   : ss(fn)
 {
   printf("CONSTRUCTED SS_SERVER FILENAME %s\n",fn.c_str());
 }
 
+// destructor
 SS_Server::~SS_Server()
 {
 printf("DESTRUCTED SS_SERVER\n");
 }
 
+// create a new thread to loop until a specific client closes a specific spreadsheet
+void SS_Server::socket_loop_thread(Serv_Sock* sock)
+{
+   boost::thread workerThread(boost::bind(&SS_Server::socket_loop, this, boost::ref(sock)));
+}
+
+// create a new thread to loop until all users have closed a certian spreadsheet
+void SS_Server::server_loop_thread()
+{
+   boost::thread workerThread(boost::bind(&SS_Server::server_loop, this));
+}
+
+// add a socket to a spreadsheet server so that it sends the socket updates of that spreadsheet
 void SS_Server::add_sock(Serv_Sock* sock)
 {
   // add the given socket to the set
@@ -35,6 +54,7 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 
   // Send the inital state of the spreadsheet to the newly joined socket
   SS_Server::broadcast(MessageHandler::Update(ss.get_version(), ss.get_cells()), sock);
+  printf("The update command was sent\n");
 
   while(run) {
     // wait for a message from the sock
@@ -140,6 +160,7 @@ void SS_Server::server_loop()
 	  std::string contents = "";
 
 	  if(message.key == "ENTER") {
+	    printf("Message key was Enter\n");
 	    newversion = ss.enter(message.cell, message.content);
 	    cell = message.cell;
 	    contents = message.content;
@@ -167,7 +188,7 @@ void SS_Server::server_loop()
 	}
       // loop
       // sleep for 10 ms
-      usleep(1000000);
+      usleep(10000);
     }// end of while
   printf("Inside server loop no more sockets editting the spread\n");
 }  

@@ -128,15 +128,14 @@ int main(void)
       if (pid == 0)  
         {
 	  // shutdown and close the socket on the server: 2 means stop sending and receiving
-	  //shutdown(sockfd, 2);
-	  close(sockfd);
+	 
     */
 	  // process the message from the client
 	  printf("Running server handle_client() on Server %d\n", &serv);
 	  serv.handle_client_thread(serv_sock);
-	  exit(0);
       
   } /*end of while*/
-
+  shutdown(sockfd, 2);
+  close(sockfd);
   return 0;
 }
