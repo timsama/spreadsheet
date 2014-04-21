@@ -7,13 +7,11 @@
 // constructor
 Server::Server()
 {
-  printf("CONSTRUCTED SERVER\n");
 }
 
 // destructor
 Server::~Server()
 {
- printf("DESTRUCTED SERVER\n");
 }
 
 // handle the client on a new thread
@@ -27,42 +25,42 @@ void Server::handle_client(Serv_Sock* serv_sock)
 {
   wait_authorize(serv_sock);
   std::string filename = wait_open_create(serv_sock);
-  printf("The filename in handle client is %s", filename.c_str());
   open_spreadsheet(serv_sock, filename);
 }
 
 // open a spreadsheet
 void Server::open_spreadsheet(Serv_Sock* serv_sock, std::string filename)
 {
+  bool justcreated = false;
+
   // iterate through the open spreads map and determine if the given spread is in it
   std::map<std::string, SS_Server*>::iterator it;
-  it = this->open_spreads.find(filename);
-  printf("Searched a map of size %d for %s before insert.\n", this->open_spreads.size(), filename.c_str());
-  if(it == this->open_spreads.end())
-    {
-      // Create new
-      SS_Server* new_ss_s;
-      new_ss_s = new SS_Server(filename);
-      std::pair<std::string, SS_Server*> spread(filename, new_ss_s);
-      this->open_spreads.insert(spread);
-      printf("AFTER INSERT: Searched a map of size %d for %s.\n", this->open_spreads.size(), filename.c_str());
+
+  {
+    // Lock while checking and adding spreadsheets to the map
+    boost::mutex::scoped_lock lock(guard2);
+    it = this->open_spreads.find(filename);
+    if(it == this->open_spreads.end())
+      {
+	justcreated = true;
+	SS_Server* new_ss_s;
+	new_ss_s = new SS_Server(filename);
+	std::pair<std::string, SS_Server*> spread(filename, new_ss_s);
+	this->open_spreads.insert(spread);
+      }
+  }
+
+  // Start the server loop if we just created the SS_Server
+  if(justcreated) {
       it = this->open_spreads.find(filename);
-      it->second->add_sock(serv_sock);
-      
-      // child process
-      printf("Server_loop was started on a new thread.\n");
       it->second->server_loop_thread();
-      printf("The pointer to the Serv_Sock is %d.", &it->second);
-    }
-  else
-    {
-      // Use existing
-      it->second->add_sock(serv_sock);
     }
 
-  //start socket loop on a new thread
+  // Add the socket to the spreadsheet
+  it->second->add_sock(serv_sock);
+
+  // Start socket loop on a new thread
   it->second->socket_loop_thread(serv_sock);
-  printf("Finished socket loop\n");
 }
 
 // handle a client until a valid password is received
@@ -75,15 +73,11 @@ void Server::wait_authorize(Serv_Sock* serv_sock)
   // wait to receive a valid password message
   while(run)
     {
-      printf("%d: Waiting for password command...\n",serv_sock->id);
-      
       message = serv_sock->serv_recv();
       if(message.compare("")==0)
 	run = false;
       
-      printf("%d: ", serv_sock->id); 
-      std::cout << "Here is the message: " << message << std::endl;
-
+      printf("%d <- %s", serv_sock->id, MessageHandler::readable(message)); 
        
       //for the password
       // create a message handler for the received message
@@ -91,8 +85,6 @@ void Server::wait_authorize(Serv_Sock* serv_sock)
     
       if ((mh.key.compare("PASSWORD")==0))
 	 {      
-	   printf("%d: The PASSWORD command was received. ",serv_sock->id);
-	   std::cout << "The PASSWORD received was " <<  mh.password << ".";
 	   // if the password message was received and valid - exit while
 	   if(mh.password.compare("warrior")==0)
 	     {
@@ -103,12 +95,10 @@ void Server::wait_authorize(Serv_Sock* serv_sock)
 	       // send invalid
 	       send_message = mh.Invalid();
 	       serv_sock->serv_send(send_message);
-	       printf("The password was invalid and a message was sent.\n");
 	     }
 	 }
       else if ((mh.key.compare("DISCONNECT")==0))
 	{
-	  printf("A DISCONNECT command was received close the socket.\n");
 	  close(serv_sock->id);
 	}
        // if the message is not password send an error and loop
@@ -117,7 +107,7 @@ void Server::wait_authorize(Serv_Sock* serv_sock)
 	   // send
 	   send_message = mh.Error("Not a password command.");
 	   serv_sock->serv_send(send_message);
-	   printf("%d: Not a password command.  An error message was sent.\n",serv_sock->id);
+	   printf("%d -> %s",serv_sock->id, MessageHandler::readable(send_message));
 	 }
     }// end of while waiting for the password command
 
@@ -125,7 +115,7 @@ void Server::wait_authorize(Serv_Sock* serv_sock)
   // use message handler to compose filelist from returnlist
   send_message = MessageHandler::Filelist(file_return());
   serv_sock->serv_send(send_message);
-  printf("The received password was valid.  The filelist was sent.\n");  
+  printf("%d -> %s", serv_sock->id, MessageHandler::readable(send_message));
 }
 
 // return a list of files that exist in a specific folder
@@ -139,7 +129,7 @@ std::list<std::string> Server::file_return()
   DIR *dpdf;
   struct dirent *epdf;
 
-  dpdf = opendir("./testfolder");
+  dpdf = opendir("./spreadsheets");
   if (dpdf != NULL)
     {
       while (epdf = readdir(dpdf))
@@ -164,15 +154,13 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
   // wait to receive an open message
    while(run)
     {
-      printf("%d: Waiting for open command...\n",serv_sock->id);
-
       // call receive to get the open message
       // receive
       message = serv_sock->serv_recv();
       if(message.compare("")==0)
 	run = false;
       
-      printf("%d: Here is the message: %s\n", serv_sock->id, message.c_str());
+      printf("%d <- %s", serv_sock->id, MessageHandler::readable(message));
 
       // if the open message was received exit while
       // create a message handler for the received message
@@ -187,7 +175,6 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
       
       if(open||create)
 	{
-	  printf("%d: An open or receive message was received. ",serv_sock->id);
 
 	  bool found = false;
 	  std::list<std::string> filelist = file_return();
@@ -201,9 +188,7 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
 	  if((found && open) || (!found && create))
 	    {
 	      // no error in message send spreadsheet
-	      printf("The message was valid.\n ");
 	      filename = mh.name;
-	      printf("Filename inside of wait_open_create is %s.\n", filename.c_str());
 	      break;
 	    }
 	  else if (open) 
@@ -211,19 +196,16 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
 	      // send error message for trying to open a non-existing file
 	      send_message = mh.Error("The requested file did not exist.");
 	      serv_sock->serv_send(send_message);
-	      printf("The requested file did not exist. An error was sent.\n "); 
 	    }
 	  else
 	    {
 	      // send error message for trying to create an existing file
 	      send_message = mh.Error("A spreadsheet already exists with the requested name.");
 	      serv_sock->serv_send(send_message);
-	      printf("A spreadsheet already exists with the requested name. An error was sent\n"); 
 	    }
 	}
        else if ((mh.key.compare("DISCONNECT")==0))
 	{
-	  printf("A DISCONNECT command was received close the socket.\n");
 	  close(serv_sock->id);
 	}
       else
@@ -231,29 +213,10 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
 	  // send
 	  send_message = mh.Error("Not an open command.");
 	  serv_sock->serv_send(send_message);
-	  printf("%d: Not an open command.  An error message was sent.\n",serv_sock->id);
+	  printf("%d -> %s", serv_sock->id, MessageHandler::readable(send_message));
 	}
     } // end of while waiting for the open command
 
-
-// Sending the initial UPDATE has all been moved to SS_Server
-// It is still here for testing
-   
-   // if it is an open command send the update right away
-   //if (open)
-   //{
-   /*    std::map<std::string,std::string> fakemap;
-       fakemap.insert(std::pair<std::string,std::string>("A1","hello"));
-       send_message = MessageHandler::Update(2, fakemap);
-       serv_sock->serv_send(send_message);
-       printf("The update command was sent.\n");*/
-       //}
-       //else
-       // {
-       // create command
-       // make sure the file is created then send the update command 
-
-       //}
   // return the filename of the spreadsheet to be opened an edited
   return filename;
 

@@ -22,6 +22,7 @@ std::string converter(char c) {
   std::string s;;
   ss << c;
   ss >> s;
+  std::toupper(s[0]);
   return s;
 }
 

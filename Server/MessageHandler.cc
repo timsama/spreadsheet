@@ -4,6 +4,10 @@
 
 #include "MessageHandler.h"
 
+MessageHandler::MessageHandler(){
+
+}
+
 // constructor
 MessageHandler::MessageHandler(std::string message, Serv_Sock* s){
   // save the socket number
@@ -198,4 +202,9 @@ std::string MessageHandler::Update(int version, std::string cell, std::string co
   // end the message with a newline
   retval += "\n";
   return retval;
+}
+
+const char* MessageHandler::readable(std::string withesc) {
+  std::replace(withesc.begin(), withesc.end(), char(27), ' ');
+  return withesc.c_str();
 }

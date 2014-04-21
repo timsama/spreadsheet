@@ -6,11 +6,13 @@
 #include <map>
 #include <list>
 #include <sstream>
+#include <algorithm>
 
 class MessageHandler
 {
  public:
   // constructor
+  MessageHandler();
   MessageHandler(std::string message, Serv_Sock* s);
 
   // when instantiated (received messages), MessageHandler is treated like a struct--all data members are public
@@ -32,6 +34,7 @@ class MessageHandler
   static std::string Sync(int version, std::map<std::string, std::string> cells); // formats a sync message for the client
   static std::string Update(int version, std::map<std::string, std::string> cells);
   static std::string Update(int version, std::string cell, std::string content); // formats an update message for the client
+  static const char* readable(std::string withesc);
 
  private:
   static std::string Cells(std::map<std::string, std::string> cells);

@@ -51,5 +51,7 @@ class Server{
   void wait_authorize(Serv_Sock* serv_sock);
   std::string wait_open_create(Serv_Sock* serv_sock);
   void open_spreadsheet(Serv_Sock* serv_sock, std::string filename);
+
+  boost::mutex guard2;
 };
 #endif

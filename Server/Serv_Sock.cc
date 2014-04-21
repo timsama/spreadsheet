@@ -38,12 +38,10 @@ std::string Serv_Sock::serv_recv()
   // check if the client has disconnected
   if (n==0)
     {
-      printf("The client socket has disconnected inside serv_sock\n");
       close(sock);
     }
   if (n < 0)
     {
-      perror("ERROR reading from socket");
       close(sock);
     }
   

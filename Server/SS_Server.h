@@ -49,6 +49,8 @@ class SS_Server{
   std::queue<MessageHandler> messages;
   std::set<Serv_Sock*> sockets;
  
+  boost::mutex guard;
+
 };
 
 #endif

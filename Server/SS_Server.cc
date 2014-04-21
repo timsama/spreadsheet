@@ -12,13 +12,11 @@
 SS_Server::SS_Server(std::string fn)
   : ss(fn)
 {
-  printf("CONSTRUCTED SS_SERVER FILENAME %s\n",fn.c_str());
 }
 
 // destructor
 SS_Server::~SS_Server()
 {
-printf("DESTRUCTED SS_SERVER\n");
 }
 
 // create a new thread to loop until a specific client closes a specific spreadsheet
@@ -37,7 +35,6 @@ void SS_Server::server_loop_thread()
 void SS_Server::add_sock(Serv_Sock* sock)
 {
   // add the given socket to the set
-  printf("A socket was added to sockets.\n");
   sockets.insert(sock);
 }
 
@@ -53,8 +50,8 @@ void SS_Server::socket_loop(Serv_Sock* sock)
   int count = 0;
 
   // Send the inital state of the spreadsheet to the newly joined socket
-  SS_Server::broadcast(MessageHandler::Update(ss.get_version(), ss.get_cells()), sock);
-  printf("The update command was sent\n");
+  send_message = MessageHandler::Update(ss.get_version(), ss.get_cells());
+  SS_Server::broadcast(send_message, sock);
 
   while(run) {
     // wait for a message from the sock
@@ -65,7 +62,7 @@ void SS_Server::socket_loop(Serv_Sock* sock)
       continue; // Add this to bypass all the following on disconnect
     }
     
-    std::cout << "Here is the message inside of socket_loop: " << message << std::endl;
+    printf("%3d <- %s", sock->id, MessageHandler::readable(message));
     
     // create a message handler for the received message
     MessageHandler mh(message, sock);
@@ -73,10 +70,11 @@ void SS_Server::socket_loop(Serv_Sock* sock)
     // if the message is an undo or enter type let the server_loop handle the return
     if ((mh.key.compare("UNDO")==0)||(mh.key.compare("ENTER")==0))
       {
-	std::cout << "Pushing a " << mh.key << " command on to the queue.\n";
 	// lock the messages queue and the message handler to it
-	messages.push(mh);
-	printf("The queue is size %d for the SS_Server %d inside of socket loop.\n",messages.size(),this);
+	{
+	  boost::mutex::scoped_lock lock(guard);
+	  messages.push(mh);
+	}
       }
     // else determine the return message based on it
     else
@@ -88,12 +86,10 @@ void SS_Server::socket_loop(Serv_Sock* sock)
 	  }
 	  else if (mh.key.compare("DISCONNECT")==0)
 	    {
-	      printf("Received DISCONNECT.\n");
 	      // the client has purposefully closed the spreadsheet
 	      // disconnect the socket from the current ss_server
 	      run = false;
-	      this->disconnect(sock);
-	      return;
+	      continue;
 	    }
 	  else if (mh.key.compare("SAVE")==0)
 	    {
@@ -111,21 +107,21 @@ void SS_Server::socket_loop(Serv_Sock* sock)
       }
     // loop
   }// end of while
+
+  this->disconnect(sock);
+  return;
 }
 
 // remove the given socket from the sockets set and close it
 void SS_Server::disconnect(Serv_Sock* sock)
 {
- shutdown(sock->id, 2);
+  shutdown(sock->id, 2);
   // close the socket
   close(sock->id);
   // delete the serv_sock
   delete sock;
   // remove the pointer from the set
   sockets.erase(sock);
-
-  printf("Inside disconnect function\n");
- 
 }
 
 
@@ -136,21 +132,28 @@ void SS_Server::server_loop()
 {
   //printf("Inside server_loop the size of messages is %d for SS_Server %d.\n",messages.size(),this);
   // while the sockets set is not empty  
-  while(!sockets.empty())
+  while(true) //!sockets.empty())
     {
       //printf("Inside server_loop inside sockets.empty the size of messages is %d.\n",messages.size());
       // while the queue of message handlers is not empty
       while(!messages.empty())
 	{
 	  // pop the messge off of the queue
-	  printf("Inside server_loop.  The queue is not empty.\n");
-	  MessageHandler message = messages.front();
-	  messages.pop();
+	  //printf("Inside server_loop.  The queue is not empty.\n");
+
+	  MessageHandler message;
+
+	  // lock the queue 
+	  {
+	    boost::mutex::scoped_lock lock(guard);
+	    message = messages.front();
+	    messages.pop();
+	  }
 
 	  int currentversion = ss.get_version();
 
 	  if(message.version != boost::lexical_cast<std::string>(currentversion)) {
-	    // CLient -> SYNC with latest version
+	    // Client -> SYNC with latest version
 	    SS_Server::broadcast(MessageHandler::Sync(ss.get_version(), ss.get_cells()), message.socket);
 	    continue;
 	  } 
@@ -160,7 +163,6 @@ void SS_Server::server_loop()
 	  std::string contents = "";
 
 	  if(message.key == "ENTER") {
-	    printf("Message key was Enter\n");
 	    newversion = ss.enter(message.cell, message.content);
 	    cell = message.cell;
 	    contents = message.content;
@@ -188,7 +190,7 @@ void SS_Server::server_loop()
 	}
       // loop
       // sleep for 10 ms
-      usleep(10000);
+      usleep(100000);
     }// end of while
   printf("Inside server loop no more sockets editting the spread\n");
 }  
@@ -196,6 +198,9 @@ void SS_Server::server_loop()
 // send a message to every socket in the serv_sock list of sockets
 void SS_Server::broadcast(std::string message)
 {
+
+  printf("\n%3dx-> %s", this->sockets.size(), MessageHandler::readable(message));
+
   // iterate through the open spreads map and determine if the given spread is in it
   for (std::set<Serv_Sock*>::iterator it = this->sockets.begin(); it != this->sockets.end(); ++it)
     {
@@ -207,8 +212,8 @@ void SS_Server::broadcast(std::string message)
 // send a message to a specific socket 
 void SS_Server::broadcast(std::string message, Serv_Sock* sock)
 {
+
+  printf("\n%3d -> %s", sock->id, MessageHandler::readable(message));
+
   sock->serv_send(message);
 }
-
-
-
