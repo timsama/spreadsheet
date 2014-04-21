@@ -89,7 +89,7 @@ namespace SS
         // evaluate message to determine which event to raise, and what values to pass in it
         public void ReceiveMessage(String message, Exception e, object payload)
         {
-            System.Windows.Forms.MessageBox.Show("Message: " + message + "\n Version: " + clientVersion);
+            //System.Windows.Forms.MessageBox.Show("Message: " + message + "\n Version: " + clientVersion);
 
             // get the keyword (i.e. the first word of the message)
             String keyword;
