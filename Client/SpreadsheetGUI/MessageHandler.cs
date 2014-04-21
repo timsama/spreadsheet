@@ -53,6 +53,9 @@ namespace SS
         // The List contains all cell names and contents that should remain after wiping the spreadsheet
         public event Action<String, List<SyncCell>> Sync;
 
+        // register for this event to be notified when the connection to the server has failed
+        public event Action Disconnected;
+
         // default constructor
         public MessageHandler()
         {
@@ -89,6 +92,16 @@ namespace SS
         // evaluate message to determine which event to raise, and what values to pass in it
         public void ReceiveMessage(String message, Exception e, object payload)
         {
+            // if a disconnected exception is received, notify the user and quit
+            if ((e != null) && (e.GetType() == typeof(DisconnectedException)))
+            {
+                if (Disconnected != null)
+                {
+                    Disconnected();
+                }
+                return;
+            }
+
             //System.Windows.Forms.MessageBox.Show("Message: " + message + "\n Version: " + clientVersion);
 
             // get the keyword (i.e. the first word of the message)

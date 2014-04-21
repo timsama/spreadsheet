@@ -95,9 +95,19 @@ namespace SS
             msgHand.Updated += handleUpdate;
             msgHand.Sync += handleSync;
             msgHand.ErrorMessage += handleErrorMessage;
+            msgHand.Disconnected += handleDisconnected;
 
             // open the file
             msgHand.OpenFile(filename);
+        }
+
+        /// <summary>
+        /// Event handler for when server disconnects
+        /// </summary>
+        private void handleDisconnected()
+        {
+            MessageBox.Show("Server timed out.");
+            this.Close();
         }
 
         /// <summary>
@@ -106,8 +116,6 @@ namespace SS
         /// <param name="e"></param>
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            bool cancel = stopForUnsavedChanges();
-            e.Cancel = cancel;
             msgHand.Disconnect();
             base.OnFormClosing(e);
         }
@@ -555,26 +563,6 @@ namespace SS
 
             // allow the user to enter changes again
             unlockInput();
-        }
-
-        /// <summary>
-        /// Checks for unsaved changes, and prompts the user about them if they are present
-        /// </summary>
-        /// <returns>Whether or not to stop due to unsaved changes</returns>
-        private bool stopForUnsavedChanges()
-        {
-            // check to see if the spreadsheet has unsaved changes
-            if (spreadsheetModel.Changed)
-            {
-                // ask the user if they want to proceed despite unsaved changes
-                DialogResult result = MessageBox.Show(guiLang.unsavedChangesMessage, guiLang.title, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
-
-                // if they do not want to proceed, return true
-                return result == DialogResult.No;
-            }
-
-            // otherwise, do not stop for unsaved changes
-            return false;
         }
 
         /// <summary>
