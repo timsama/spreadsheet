@@ -1,5 +1,5 @@
 server: run_server.cc Server.cc Server.h SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o spreadsheet.o spreadsheet_db.o parsecells.o
-	g++ -o server run_server.cc Server.cc SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o parsecells.o spreadsheet.o spreadsheet_db.o -lsqlite3 -lboost_thread -pthread
+	g++ -I/usr/local/stow/boost/boost_1_53_0/include -L/usr/local/stow/boost/boost_1_53_0/lib -o server run_server.cc Server.cc SS_Server.o MessageHandler.o Serv_Sock.o dependency_graph.o parsecells.o spreadsheet.o spreadsheet_db.o -lsqlite3 -lboost_thread -pthread
 
 Serv_Sock.o:		Serv_Sock.cc Serv_Sock.h
 			g++ -c Serv_Sock.cc

@@ -16,11 +16,10 @@ Server::~Server()
  printf("DESTRUCTED SERVER\n");
 }
 
-// call all of the necessary functions to handle the client and pass it to the SS_Server
+// handle the client on a new thread
 void Server::handle_client_thread(Serv_Sock* serv_sock)
 {
   boost::thread workerThread(boost::bind(&Server::handle_client, this, boost::ref(serv_sock)));
-  workerThread.join();
 }
 
 // call all of the necessary functions to handle the client and pass it to the SS_Server
@@ -32,6 +31,7 @@ void Server::handle_client(Serv_Sock* serv_sock)
   open_spreadsheet(serv_sock, filename);
 }
 
+// open a spreadsheet
 void Server::open_spreadsheet(Serv_Sock* serv_sock, std::string filename)
 {
   // iterate through the open spreads map and determine if the given spread is in it
@@ -48,21 +48,11 @@ void Server::open_spreadsheet(Serv_Sock* serv_sock, std::string filename)
       printf("AFTER INSERT: Searched a map of size %d for %s.\n", this->open_spreads.size(), filename.c_str());
       it = this->open_spreads.find(filename);
       it->second->add_sock(serv_sock);
-      //Fork
-      int pid = fork();
-      if (pid < 0)
-	{
-	  perror("ERROR on fork");
-	  exit(1);
-	}
-      if (pid == 0)  
-	{
-	  // child process
-	  printf("Server_loop was started.\n");
-	  it->second->server_loop();
-	  printf("The pointer to the Serv_Sock is %d.", &it->second);
-	  exit(0);
-	}
+      
+      // child process
+      printf("Server_loop was started on a new thread.\n");
+      it->second->server_loop_thread();
+      printf("The pointer to the Serv_Sock is %d.", &it->second);
     }
   else
     {
@@ -70,11 +60,12 @@ void Server::open_spreadsheet(Serv_Sock* serv_sock, std::string filename)
       it->second->add_sock(serv_sock);
     }
 
-  it->second->socket_loop(serv_sock);
+  //start socket loop on a new thread
+  it->second->socket_loop_thread(serv_sock);
   printf("Finished socket loop\n");
 }
 
-
+// handle a client until a valid password is received
 void Server::wait_authorize(Serv_Sock* serv_sock)
 {
   std::string message;
@@ -137,7 +128,7 @@ void Server::wait_authorize(Serv_Sock* serv_sock)
   printf("The received password was valid.  The filelist was sent.\n");  
 }
 
-
+// return a list of files that exist in a specific folder
 std::list<std::string> Server::file_return()
 {
   std::list<std::string> mylist;
@@ -162,6 +153,7 @@ std::list<std::string> Server::file_return()
   return mylist;
 }
 
+// handle a client until a valid open or create command is received
 std::string Server::wait_open_create(Serv_Sock* serv_sock)
 {
   std::string filename;
@@ -206,7 +198,7 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
 		found = true;
 	    }
 	  
-	  if(found && open) || (!found && create))
+	  if((found && open) || (!found && create))
 	    {
 	      // no error in message send spreadsheet
 	      printf("The message was valid.\n ");
@@ -250,11 +242,11 @@ std::string Server::wait_open_create(Serv_Sock* serv_sock)
    // if it is an open command send the update right away
    //if (open)
    //{
-       std::map<std::string,std::string> fakemap;
+   /*    std::map<std::string,std::string> fakemap;
        fakemap.insert(std::pair<std::string,std::string>("A1","hello"));
        send_message = MessageHandler::Update(2, fakemap);
        serv_sock->serv_send(send_message);
-       printf("The update command was sent.\n");
+       printf("The update command was sent.\n");*/
        //}
        //else
        // {

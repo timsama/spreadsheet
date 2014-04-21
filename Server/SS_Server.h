@@ -20,7 +20,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <boost/lexical_cast.hpp>
-
+#include <boost/thread/thread.hpp>
 
 
 
@@ -31,11 +31,14 @@ class SS_Server{
   SS_Server(std::string filename);
   ~SS_Server();
 
-  void server_loop();  
-  void socket_loop(Serv_Sock* sock);
+  void socket_loop_thread(Serv_Sock* sock);
+  void server_loop_thread();
   void add_sock(Serv_Sock* sock);
 
  private:
+
+  void server_loop();  
+  void socket_loop(Serv_Sock* sock);
 
   void broadcast(std::string message);
   void broadcast(std::string message, Serv_Sock* sock);
