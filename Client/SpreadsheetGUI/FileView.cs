@@ -132,7 +132,8 @@ namespace SS
         private void Sync(String version, IEnumerable<SyncCell> cells)
         {
             // unregister so later file openings don't trigger this
-            //msgHand.Sync -= Sync;
+            msgHand.Updated -= Update;
+            msgHand.Sync -= Sync;
 
             // open the file;
             childcount++;
@@ -150,6 +151,7 @@ namespace SS
         {
             // unregister so later file openings don't trigger this
             msgHand.Updated -= Update;
+            msgHand.Sync -= Sync;
 
             // open the file
             childcount++;

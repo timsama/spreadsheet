@@ -42,15 +42,6 @@ namespace SS
 
             // set a handle to a new MessageHandler (each spreadsheet operates on its own socket)
             msgHand = new MessageHandler(_fileview.getMessageHandler());
-
-            // set up events to respond to the MessageHandler
-            msgHand.Saved += handleSaved;
-            msgHand.Updated += handleUpdate;
-            msgHand.Sync += handleSync;
-            msgHand.ErrorMessage += handleErrorMessage;
-
-            // open the file
-            msgHand.OpenFile(_filename);
         }
 
         /// <summary>
@@ -90,6 +81,23 @@ namespace SS
 
             // by default, input is not locked
             locked = false;
+        }
+
+        /// <summary>
+        /// Event handler for when the spreadsheet panel has finished loading
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ssPanel_Load(object sender, EventArgs e)
+        {
+            // set up events to respond to the MessageHandler
+            msgHand.Saved += handleSaved;
+            msgHand.Updated += handleUpdate;
+            msgHand.Sync += handleSync;
+            msgHand.ErrorMessage += handleErrorMessage;
+
+            // open the file
+            msgHand.OpenFile(filename);
         }
 
         /// <summary>
@@ -161,11 +169,6 @@ namespace SS
             }
 
             displaySelection(ssPanel);
-        }        
-
-        private void ssPanel_Load(object sender, EventArgs e)
-        {
-
         }
 
         /// <summary>
@@ -501,8 +504,14 @@ namespace SS
             lock (spreadsheetModel)
             {
                 locked = false;
-                ssPanel.BeginInvoke(new Action(() => { ssPanel.Enabled = true; }));
-                contentsTextBox.BeginInvoke(new Action(() => { contentsTextBox.ReadOnly = false; }));
+                if (ssPanel.IsHandleCreated)
+                {
+                    ssPanel.BeginInvoke(new Action(() => { ssPanel.Enabled = true; }));
+                }
+                if (contentsTextBox.IsHandleCreated)
+                {
+                    contentsTextBox.BeginInvoke(new Action(() => { contentsTextBox.ReadOnly = false; }));
+                }
                 StopMarquee();
             }
         }
@@ -523,7 +532,10 @@ namespace SS
                 spreadsheetModel.DirectSetCell(cell.Name, cell.Contents);
 
             // put the cursor back in the spreadsheet
-            ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
+            if (ssPanel.IsHandleCreated)
+            {
+                ssPanel.BeginInvoke(new Action(() => { ssPanel.Focus(); }));
+            }
 
             // recalculate all cells since we dummied some stuff out with zeroes
             hardResetAllCells();
